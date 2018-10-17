@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: widget-factory
+  labels:
+    app: widget-factory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: widget-factory
+  template:
+    metadata:
+      labels:
+        app: widget-factory
+    spec:
+      containers:
+      - name: widget-factory
+        image: docker-registry.default.svc:5000/demo/widget-factory:latest
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: JAVA_APP_DIR
+          value: /deployments
+        imagePullPolicy: Always

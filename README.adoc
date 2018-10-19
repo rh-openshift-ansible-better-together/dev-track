@@ -1,0 +1,84 @@
+= OpenShift-Ansible Integration Lab
+
+== TODO
+
+* Framework
+** [ ] Thorntail/Microprofile
+** [x] Spring Boot
+* Usecase
+** [ ] cookie-factory
+** [ ] cool-stuff-store
+** [x] widget-factory
+* Jenkins Deployment
+** [ ] auto-provisioned instance
+** [ ] ansible applier
+** [ ] template-service-broker
+* Application Deployment
+** [ ] helm
+** [x] fabric8 plugin
+** [ ] ansible applier
+* Repo location (probably not `srang`)
+** [ ] gpte
+* Java package path (probably not `srang`)
+* Data hydration/Schema generation
+** [ ] liquibase
+** [ ] flyway
+** [x] spring commandlinerunner bean + hibernate
+* Minimize required participant tooling
+** [ ] maven
+** [ ] jdk
+** [ ] git
+** [ ] oc
+** [ ] msyql
+** [ ] ssh/putty
+** [ ] bash
+* `chapters` branch(s)
+* Lab writeup
+
+= Lab Sections
+
+== 0 Introduction to Usecase
+
+Widget factory inventory system
+
+== 1 Install MySQL Server with Ansible Tower
+
+=== 1.1 Introduction to Ansible Engine and Ansible Tower
+
+=== 1.2 Log into Tower
+
+=== 1.3 Review Playbook
+
+=== 1.4 Set up Job Template
+
+=== 1.5 Provision MySQL server on VM
+
+== 2 Deploy Application
+
+=== 2.1 Deploy Jenkins (Template Service Broker)
+
+=== 2.2 Configure Ansible-Maven Agent
+
+```
+oc import-image my-openshift3/jenkins-slave-base-rhel7 \
+ --from=registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7 \
+ --confirm
+```
+
+=== 2.3 Review Application
+
+=== 2.4 Ansible-Applier
+
+=== 2.5 Deploy Application
+
+== 3 Connect Application to MySQL
+
+=== 3.1 Review Legacy Solution
+
+=== 3.2 Automation Service Broker
+
+=== 3.3 Build an APB
+
+=== 3.4 Provision Database and Credentials
+
+=== 3.5 Update Application to Use Bindings

@@ -12,7 +12,7 @@
 * Jenkins Deployment
 ** [ ] auto-provisioned instance
 ** [ ] ansible applier
-** [ ] template-service-broker
+** [x] template-service-broker
 * Application Deployment
 ** [ ] helm
 ** [x] fabric8 plugin
@@ -37,9 +37,19 @@
 
 = Lab Sections
 
-== 0 Introduction to Usecase
+== 0 Introduction
 
-Widget factory inventory system
+=== 0.1 Usecase
+
+Today we are building a WIDGET inventory tracking system. It comprises of a simple
+data driven application backed by MySQL. We will be deploying the application on OpenShift
+and the database server on a RHEL virtual machine. 
+
+=== 0.2 Ansible and OpenShift
+
+The goal of this lab is to show how the [OpenShift Container Platform](https://docs.openshift.com/container-platform/latest/getting_started/index.html)
+and [Ansible Automation](https://www.ansible.com/resources/get-started) can build on
+each other to increase innovation and accelerate delivery.
 
 == 1 Install MySQL Server with Ansible Tower
 

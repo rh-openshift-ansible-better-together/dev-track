@@ -1,0 +1,57 @@
+= OpenShift-Ansible Integration Lab
+
+== 0 Introduction
+
+=== 0.1 Usecase
+
+Today we are building a WIDGET inventory tracking system. It comprises of a simple
+data driven application backed by MySQL. We will be deploying the application on OpenShift
+and the database server on a RHEL virtual machine. 
+
+=== 0.2 Ansible and OpenShift
+
+The goal of this lab is to show how the [OpenShift Container Platform](https://docs.openshift.com/container-platform/latest/getting_started/index.html)
+and [Ansible Automation](https://www.ansible.com/resources/get-started) can build on
+each other to increase innovation and accelerate delivery.
+
+== 1 Install MySQL Server with Ansible Tower
+
+=== 1.1 Introduction to Ansible Engine and Ansible Tower
+
+=== 1.2 Log into Tower
+
+=== 1.3 Review Playbook
+
+=== 1.4 Set up Job Template
+
+=== 1.5 Provision MySQL server on VM
+
+== 2 Deploy Application
+
+=== 2.1 Deploy Jenkins (Template Service Broker)
+
+=== 2.2 Configure Ansible-Maven Agent
+
+```
+oc import-image my-openshift3/jenkins-slave-base-rhel7 \
+ --from=registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7 \
+ --confirm
+```
+
+=== 2.3 Review Application
+
+=== 2.4 Ansible-Applier
+
+=== 2.5 Deploy Application
+
+== 3 Connect Application to MySQL
+
+=== 3.1 Review Legacy Solution
+
+=== 3.2 Automation Service Broker
+
+=== 3.3 Build an APB
+
+=== 3.4 Provision Database and Credentials
+
+=== 3.5 Update Application to Use Bindings

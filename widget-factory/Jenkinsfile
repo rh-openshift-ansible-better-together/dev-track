@@ -1,27 +1,18 @@
 openshift.withCluster() {
     env.NAMESPACE = openshift.project()
     env.POM_FILE = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/pom.xml" : "pom.xml"
-    env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-?pipeline-?/, '').replaceAll(/-?${env.NAMESPACE}-?/, '').replaceAll("/", '')
+    env.APP_NAME = "widget-factory"
     echo "Starting Pipeline for ${APP_NAME}..."
-    def projectBase = "${env.NAMESPACE}".replaceAll(/-build/, '')
-    env.STAGE0 = "${projectBase}-build"
-    env.STAGE1 = "${projectBase}-dev"
-    env.STAGE2 = "${projectBase}-stage"
-    env.STAGE3 = "${projectBase}-prod"
 }
 
 pipeline {
-    // Use Jenkins Maven slave
     // Jenkins will dynamically provision this as OpenShift Pod
     // All the stages and steps of this Pipeline will be executed on this Pod
     // After Pipeline completes the Pod is killed so every run will have clean
     // workspace
     agent {
-        label 'maven'
+        label 'widget'
     }
-
-    // Pipeline Stages start here
-    // Requeres at least one stage
     stages {
 
         // Checkout source code
@@ -49,6 +40,14 @@ pipeline {
             }
         }
 
+        // TODO names
+        stage('Ansible') {
+            steps {
+                sh "ansible-playbook -i ./.applier/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml"
+                sh "ansible-playbook -i inventory/hosts roles/openshift-applier/playbooks/openshift-cluster-seed.yml -e APPLICATION_RELEASE=0.0.1"
+            }
+        }
+
         // Build Container Image using the artifacts produced in previous stages
         stage('Build Container Image') {
             steps {
@@ -68,7 +67,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject("${STAGE0}") {
-                            openshift.selector("bc", "${APP_NAME}").startBuild("--from-dir=oc-build").logs("-f")
+                            openshift.selector("bc", "${APP_NAME}").startBuild().logs("-f")
                         }
                     }
                 }

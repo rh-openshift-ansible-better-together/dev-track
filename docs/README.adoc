@@ -28,6 +28,8 @@ each other to increase innovation and accelerate delivery.
 
 == 2 Deploy Application
 
+`oc new-project widget-factory`
+
 === 2.1 Deploy Jenkins (Template Service Broker)
 
 === 2.2 Configure Ansible-Maven Agent

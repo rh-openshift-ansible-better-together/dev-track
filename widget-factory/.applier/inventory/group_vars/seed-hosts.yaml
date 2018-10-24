@@ -1,0 +1,12 @@
+---
+openshift_cluster_content:
+- object: deployment
+  content:
+  - name: widget-factory
+    template: "{{ inventory_dir }}/../.applier/templates/deploy.yaml"
+    namespace: widget-factory
+- object: build
+  content:
+  - name: widget-factory
+    template: "{{ inventory_dir }}/../.applier/templates/build.yaml"
+    namespace: widget-factory

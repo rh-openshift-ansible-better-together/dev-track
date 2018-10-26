@@ -50,6 +50,7 @@ parameters:
   displayName: Name
   description: The name assigned to all objects and the resulting imagestream.
   required: true
+  value: widget-jenkins-agent
 - name: SOURCE_REPOSITORY_URL
   displayName: Git Repository URL
   description: The URL of the repository with your application source code.

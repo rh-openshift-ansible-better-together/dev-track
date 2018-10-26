@@ -8,7 +8,7 @@ pipeline {
         stage('configure build') {
             steps {
                 sh """
-                    oc process -f widget-jenkins-agent/builder.yaml -p name=widget-jenkins-agent | oc apply -f -
+                    oc process -f builder.yaml | oc apply -f -
                 """
             }
         }

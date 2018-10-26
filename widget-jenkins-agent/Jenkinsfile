@@ -1,6 +1,9 @@
 #!/usr/bin/env groovy
 
 pipeline {
+    agent {
+        label 'maven'
+    }
     stages {
         stage('configure build') {
             steps {

@@ -1,0 +1,20 @@
+#!/usr/bin/env groovy
+
+pipeline {
+    stages {
+        stage('configure build') {
+            steps {
+                sh """
+                    oc process -f widget-jenkins-agent/build-template.yaml -P name=widget-jenkins-agent | oc apply -f -
+                """
+            }
+        }
+        stage('build agent') {
+            steps {
+                sh """
+                    oc start-build -F bc/widget-jenkins-agent
+                """
+            }
+        }
+    }
+}

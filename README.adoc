@@ -1,6 +1,6 @@
 = OpenShift-Ansible Integration Lab
 
-== TODO
+== Decisions
 
 * Framework
 ** [ ] Thorntail/Microprofile
@@ -19,7 +19,10 @@
 ** [ ] ansible applier
 * Repo location (probably not `srang`)
 ** [ ] gpte
-* Java package path (probably not `srang`)
+* Java package path
+** [ ] com.github.srang
+** [ ] com.redhat.widgets
+** [ ] com.rht.demo
 * Data hydration/Schema generation
 ** [ ] liquibase
 ** [ ] flyway
@@ -30,7 +33,33 @@
 ** [ ] git
 ** [ ] oc
 ** [ ] msyql
-** [ ] ssh/putty
-** [ ] bash
-* `chapters` branch(s)
-* Lab writeup
+** [x] ssh/putty
+** [x] bash
+
+=== Tasks
+
+==== Section 1 - MySQL Server Install
+
+* [ ] Determine installation method - tower, bastion, localhost
+* [ ] Write playbook for configuring MySQL server
+
+==== Section 2 - Application Deployment
+
+* [x] Write simple application
+* [ ] Document application
+* [ ] Deploy Jenkins with TSB
+* [ ] Create jenkins-ansible-slave
+* [ ] Add agent to jenkins kubernetes configuration
+* [ ] openshift-applier artifacts for application
+* [ ] Pipeline for build and deploy application
+
+==== Section 3 - Integration
+
+* [ ] Automation Service Broker overview
+* [ ] Playbook Bundle for configuring database
+* [ ] Bind credentials back
+
+==== Misc
+
+* [ ] Prep for Service Broker design/architecture questions
+* [ ] Understand new `openshift-applier` internals

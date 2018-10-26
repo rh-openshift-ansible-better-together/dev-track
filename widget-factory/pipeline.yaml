@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: widget-factory-bootstrap
+metadata:
+  name: widget-factory-bootstrap
+objects:
+- kind: "BuildConfig"
+  apiVersion: "v1"
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: "${APPLICATION_NAME}-pipeline"
+    namespace: "${APPLICATION_NAMESPACE}"
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${APPLICATION_SOURCE_REPOSITORY_URL}
+        ref: ${APPLICATION_SOURCE_REPOSITORY_REF}
+      contextDir: ${APPLICATION_CONTEXT_DIR}
+    strategy:
+      type: "JenkinsPipeline"
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: ${PIPELINE_SCRIPT}
+        env:
+        - name: "APPLICATION_SOURCE_REPOSITORY_URL"
+          value: "${APPLICATION_SOURCE_REPOSITORY_URL}"
+        - name: "APPLICATION_CONTEXT_DIR"
+          value: "${APPLICATION_CONTEXT_DIR}"
+parameters:
+- description: The name for the application.
+  name: APPLICATION_NAME
+  required: true
+  value: widget-factory
+- description: The namespace to deploy into
+  name: APPLICATION_NAMESPACE
+  required: true
+  value: widget-factory
+- description: Git source URI for application
+  displayName: Application source url
+  name: APPLICATION_SOURCE_REPOSITORY_URL
+  value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
+- description: Play Framework application source branch/tag reference.
+  displayName: Play application source branch/tag reference.
+  name: APPLICATION_SOURCE_REPOSITORY_REF
+  value: master
+- description: Path within Git project to build containing the application
+  displayName: Application context directory.
+  name: APPLICATION_CONTEXT_DIR
+  value: widget-factory
+- description: Path within Git project pointing to the pipeline run script
+  name: PIPELINE_SCRIPT
+  value: Jenkinsfile

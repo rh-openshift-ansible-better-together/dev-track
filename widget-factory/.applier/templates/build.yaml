@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: widget-factory-build-template
+metadata:
+  annotations:
+    description: Template for building widget-factory
+    tags: demo,java
+  name: widget-factory-build-template
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: ${JDK_BUILDER_NAME}
+    name: openjdk18-openshift
+  spec:
+    dockerImageRepository: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APPLICATION_NAME}:${APPLICATION_RELEASE}
+    source:
+      contextDir: ${APPLICATION_CONTEXT_DIR}
+      git:
+        ref: ${APPLICATION_SOURCE_REPOSITORY_REF}
+        uri: ${APPLICATION_SOURCE_REPOSITORY_URL}
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: ${PLAY_BUILDER_NAME}:latest
+      type: Source
+    triggers:
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+parameters:
+- description: The name for the Play Framework builder.
+  displayName: Play builder name
+  name: JDK_BUILDER_NAME
+  required: true
+  value: s2i-java
+- description: The name for the demo application.
+  displayName: Application name
+  name: APPLICATION_NAME
+  required: true
+  value: widget-factory
+- description: Tag for current release of widget application
+  displayName: Image release tag
+  name: APPLICATION_RELEASE
+  required: true
+- description: Git source URI for application
+  displayName: Application source url
+  name: APPLICATION_SOURCE_REPOSITORY_URL
+  value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
+- description: Play Framework application source branch/tag reference.
+  displayName: Play application source branch/tag reference.
+  name: APPLICATION_SOURCE_REPOSITORY_REF
+  value: master
+- description: Path within Git project to build containing the application
+  displayName: Application context directory.
+  name: APPLICATION_CONTEXT_DIR
+  value: widget-factory

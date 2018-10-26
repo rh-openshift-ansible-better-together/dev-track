@@ -7,8 +7,9 @@ pipeline {
     stages {
         stage('configure build') {
             steps {
+                dir(env.BUILDER_CONTEXT_DIR)
                 sh """
-                    oc process -f builder.yaml | oc apply -f -
+                    oc process -f builder.yaml | oc apply -f-
                 """
             }
         }

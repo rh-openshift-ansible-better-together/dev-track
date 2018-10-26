@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 openshift.withCluster() {
     env.NAMESPACE = openshift.project()
     env.APP_NAME = "widget-factory"

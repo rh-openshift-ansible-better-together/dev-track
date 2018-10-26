@@ -7,10 +7,11 @@ pipeline {
     stages {
         stage('configure build') {
             steps {
-                dir(env.BUILDER_CONTEXT_DIR)
-                sh """
-                    oc process -f builder.yaml | oc apply -f-
-                """
+                dir(env.BUILDER_CONTEXT_DIR) {
+                    sh """
+                        oc process -f builder.yaml | oc apply -f-
+                    """
+                }
             }
         }
         stage('build agent') {

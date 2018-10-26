@@ -34,8 +34,9 @@ parameters:
   required: true
   value: widget-factory
 - description: The namespace to deploy into
-  name: NAMESPACE
+  name: APPLICATION_NAMESPACE
   required: true
+  value: widget-factory
 - description: Git source URI for application
   displayName: Application source url
   name: APPLICATION_SOURCE_REPOSITORY_URL
@@ -51,14 +52,3 @@ parameters:
 - description: Path within Git project pointing to the pipeline run script
   name: PIPELINE_SCRIPT
   value: Jenkinsfile
-- description: Namespace in which the ImageStreams for Red Hat Middleware images are
-    installed. These ImageStreams are normally installed in the openshift namespace.
-    You should only need to modify this if you've installed the ImageStreams in a
-    different namespace/project.
-  name: IMAGE_STREAM_NAMESPACE
-  required: true
-  value: openshift
-- description: Image stream tag for the image you'd like to use to build the application
-  name: IMAGE_STREAM_TAG_NAME
-  required: true
-  value: redhat-openjdk18-openshift:1.1

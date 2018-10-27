@@ -2,31 +2,37 @@
 kind: Template
 apiVersion: v1
 metadata:
-  name: "${NAME}"
+  name: "${APPLICATION_NAME}"
   annotations:
     openshift.io/display-name: Ansible Jenkins Agent
-    description: "${NAME} build pod template pre-configured to use a jenkins slave in the
+    description: "${APPLICATION_NAME} build pod template pre-configured to use a jenkins slave in the
       same project/namespace"
 objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
     labels:
-      build: "${NAME}"
+      application: "${APPLICATION_GROUP}-agent"
+      group: "${APPLICATION_GROUP}"
+      build: "${APPLICATION_NAME}"
       role: jenkins-slave
-    name: "${NAME}"
+    name: "${APPLICATION_NAME}"
+    namespace: "${APPLICATION_NAMESPACE}"
 - apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
-      build: "${NAME}"
+      application: "${APPLICATION_GROUP}-agent"
+      group: "${APPLICATION_GROUP}"
+      build: "${APPLICATION_NAME}"
       type: image
-    name: "${NAME}"
+    name: "${APPLICATION_NAME}"
+    namespace: "${APPLICATION_NAMESPACE}"
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: "${NAME}:${SLAVE_IMAGE_TAG}"
+        name: "${APPLICATION_NAME}:${SLAVE_IMAGE_TAG}"
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -46,11 +52,16 @@ objects:
     triggers:
     - type: ConfigChange
 parameters:
-- name: NAME
+- name: APPLICATION_NAME
   displayName: Name
   description: The name assigned to all objects and the resulting imagestream.
   required: true
   value: widget-jenkins-agent
+- name: APPLICATION_GROUP
+  displayName: Group
+  value: widget-factory
+- name: APPLICATION_NAMESPACE
+  value: widget-facotory
 - name: SOURCE_REPOSITORY_URL
   displayName: Git Repository URL
   description: The URL of the repository with your application source code.

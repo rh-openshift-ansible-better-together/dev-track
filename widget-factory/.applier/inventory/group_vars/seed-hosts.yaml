@@ -2,11 +2,13 @@
 openshift_cluster_content:
 - object: deployment
   content:
-  - name: widget-factory
-    template: "{{ inventory_dir }}/../.applier/templates/deploy.yaml"
+  - name: "widget-factory-deploy"
+    template: "{{ inventory_dir }}/../templates/deploy.yaml"
+    params: "{{ inventory_dir }}/../params/version"
     namespace: widget-factory
 - object: build
   content:
-  - name: widget-factory
-    template: "{{ inventory_dir }}/../.applier/templates/build.yaml"
+  - name: "widget-factory build"
+    template: "{{ inventory_dir }}/../templates/build.yaml"
+    params: "{{ inventory_dir }}/../params/version"
     namespace: widget-factory

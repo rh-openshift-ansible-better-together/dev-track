@@ -2,8 +2,8 @@
 
 openshift.withCluster() {
     env.NAMESPACE = openshift.project()
-    env.APP_NAME = "widget-factory"
-    echo "Starting Pipeline for ${APP_NAME}..."
+    env.APPLICATION_NAME = "widget-factory"
+    echo "Starting Pipeline for ${APPLICATION_NAME}..."
 }
 
 pipeline {
@@ -40,8 +40,21 @@ pipeline {
             steps {
                 script {
                     openshift.withCluster() {
-                        openshift.withProject("${NAMESPACE}") {
-                            openshift.selector("bc", "${APP_NAME}").startBuild().logs("-f")
+                        openshift.withProject(NAMESPACE) {
+                            openshift.selector("bc", "${APPLICATION_NAME}").startBuild().logs("-f")
+                        }
+                    }
+                }
+            }
+        }
+
+        // minishift doesn't resolve docker-registry.default.svc https://github.com/minishift/minishift-centos-iso/issues/222
+        stage('Minishift update to resolve image') {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(NAMESPACE) {
+                            openshift.selector("deploy/${APPLICATION_NAME}").patch('{"spec": {"template": { "spec": {"containers": [{"name":"widget-factory","image":"172.30.1.1:5000/widget-factory/widget-factory:0.0.1"}]}}}}')
                         }
                     }
                 }
@@ -52,7 +65,7 @@ pipeline {
 //            steps {
 //                script {
 //                    openshift.withCluster() {
-//                        openshift.tag("${env.STAGE0}/${env.APP_NAME}:latest", "${env.STAGE1}/${env.APP_NAME}:latest")
+//                        openshift.tag("${env.STAGE0}/${env.APPLICATION_NAME}:latest", "${env.STAGE1}/${env.APP_NAME}:latest")
 //                    }
 //                }
 //            }
@@ -63,8 +76,8 @@ pipeline {
 //                script {
 //                    openshift.withCluster() {
 //                        openshift.withProject("${STAGE1}") {
-//                            def dcObj = openshift.selector('deployment', env.APP_NAME).object()
-//                            def podSelector = openshift.selector('pod', [deployment: "${APP_NAME}-${dcObj.status.latestVersion}"])
+//                            def dcObj = openshift.selector('deployment', env.APPLICATION_NAME).object()
+//                            def podSelector = openshift.selector('pod', [deployment: "${APPLICATION_NAME}-${dcObj.status.latestVersion}"])
 //                            podSelector.untilEach {
 //                                echo "pod: ${it.name()}"
 //                                return it.object().status.containerStatuses[0].ready

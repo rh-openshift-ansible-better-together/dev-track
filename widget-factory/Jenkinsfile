@@ -26,7 +26,7 @@ pipeline {
         }
 
         // apply ansible config
-        stage('Ansible') {
+        stage('Apply OpenShift Manifests with Ansible') {
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
                     sh "ansible-galaxy install -r requirements.yml --roles-path=galaxy"
@@ -38,22 +38,9 @@ pipeline {
         // Build Container Image using the artifacts produced in previous stages
         stage('Build Container Image') {
             steps {
-                // Copy the resulting artifacts into common directory
-                sh """
-                  ls target/*
-                  rm -rf oc-build && mkdir -p oc-build/deployments
-                  for t in jar war ear; do
-                    cp -rfv ./target/*.\$t oc-build/deployments/ 2> /dev/null || echo "No \$t files"
-                  done
-                """
-
-                // Build container image using local Openshift cluster
-                // Giving all the artifacts to OpenShift Binary Build
-                // This places your artifacts into right location inside your S2I image
-                // if the S2I image supports it.
                 script {
                     openshift.withCluster() {
-                        openshift.withProject("${STAGE0}") {
+                        openshift.withProject("${NAMESPACE}") {
                             openshift.selector("bc", "${APP_NAME}").startBuild().logs("-f")
                         }
                     }

@@ -61,7 +61,7 @@ parameters:
   displayName: Group
   value: widget-factory
 - name: APPLICATION_NAMESPACE
-  value: widget-facotory
+  value: widget-factory
 - name: SOURCE_REPOSITORY_URL
   displayName: Git Repository URL
   description: The URL of the repository with your application source code.

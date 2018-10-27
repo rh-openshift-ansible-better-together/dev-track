@@ -11,7 +11,7 @@
     <artifactId>widget-factory</artifactId>
     <groupId>com.github.srang.lab</groupId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>

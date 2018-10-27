@@ -12,36 +12,36 @@ pipeline {
     // After Pipeline completes the Pod is killed so every run will have clean
     // workspace
     agent {
-        label 'maven'
+        label 'widget-jenkins-agent'
     }
     stages {
         // Run Maven build, skipping tests
-        stage('Dir') {
-            steps {
-                sh "cd ${env.APPLICATION_CONTEXT_DIR}"
-            }
-        }
-        // Run Maven build, skipping tests
         stage('Build') {
             steps {
-                sh "mvn clean install -DskipTests=true"
+                dir('env.APPLICATION_CONTEXT_DIR') {
+                    sh "mvn clean install -DskipTests=true"
+                }
             }
         }
 
-//        // Run Maven unit tests
-//        stage('Unit Test') {
-//            steps {
-//                sh "mvn test -f ${POM_FILE}"
-//            }
-//        }
+        // Run Maven unit tests
+        stage('Unit Test') {
+            steps {
+                dir('env.APPLICATION_CONTEXT_DIR') {
+                    sh "mvn test -f ${POM_FILE}"
+                }
+            }
+        }
 
-        // TODO names
-//        stage('Ansible') {
-//            steps {
-//                sh "ansible-playbook -i ./.applier/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml"
-//                sh "ansible-playbook -i inventory/hosts roles/openshift-applier/playbooks/openshift-cluster-seed.yml -e APPLICATION_RELEASE=0.0.1"
-//            }
-//        }
+        // apply ansible config
+        stage('Ansible') {
+            steps {
+                dir('env.APPLICATION_CONTEXT_DIR') {
+                    sh "ansible-playbook -i ./.applier/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml"
+                    sh "ansible-playbook -i inventory/hosts roles/openshift-applier/playbooks/openshift-cluster-seed.yml -e APPLICATION_RELEASE=0.0.1"
+                }
+            }
+        }
 //
 //        // Build Container Image using the artifacts produced in previous stages
 //        stage('Build Container Image') {

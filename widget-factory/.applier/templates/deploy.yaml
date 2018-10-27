@@ -42,6 +42,25 @@ objects:
                 fieldPath: metadata.namespace
           - name: JAVA_APP_DIR
             value: /deployments
+          - name: SPRING_PROFILES_ACTIVE
+            value: openshift
+          - name: DB_SVC
+            value: mysql
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: database-name
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: database-user
+          - name: DB_PASS
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: database-password
           imagePullPolicy: Always
 - apiVersion: v1
   kind: Route

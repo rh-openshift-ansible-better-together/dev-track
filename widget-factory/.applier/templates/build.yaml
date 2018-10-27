@@ -28,7 +28,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: ${APPLICATION_NAME}:${APPLICATION_RELEASE}
+        name: ${APPLICATION_NAME}:latest
     source:
       contextDir: ${APPLICATION_CONTEXT_DIR}
       git:

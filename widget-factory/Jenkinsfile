@@ -51,13 +51,16 @@ pipeline {
         // minishift doesn't resolve docker-registry.default.svc https://github.com/minishift/minishift-centos-iso/issues/222
         stage('Minishift update to resolve image') {
             steps {
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject(NAMESPACE) {
-                            openshift.selector("deploy/${APPLICATION_NAME}").patch('{"spec": {"template": { "spec": {"containers": [{"name":"widget-factory","image":"172.30.1.1:5000/widget-factory/widget-factory:0.0.1"}]}}}}')
-                        }
-                    }
-                }
+                sh """
+                    oc patch deploy ${APPLICATION_NAME} -p '{"spec": {"template": { "spec": {"containers": [{"name":"widget-factory","image":"172.30.1.1:5000/widget-factory/widget-factory:0.0.1"}]}}}}'
+                """
+//                script {
+//                    openshift.withCluster() {
+//                        openshift.withProject(NAMESPACE) {
+//                            openshift.selector("deploy/${APPLICATION_NAME}").patch()
+//                        }
+//                    }
+//                }
             }
         }
 

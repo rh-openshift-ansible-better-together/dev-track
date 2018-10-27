@@ -17,18 +17,10 @@ pipeline {
     stages {
         // Run Maven build, skipping tests
         stage('Build') {
+            agent { label 'maven' }
             steps {
                 dir('env.APPLICATION_CONTEXT_DIR') {
-                    sh "mvn clean install -DskipTests=true"
-                }
-            }
-        }
-
-        // Run Maven unit tests
-        stage('Unit Test') {
-            steps {
-                dir('env.APPLICATION_CONTEXT_DIR') {
-                    sh "mvn test -f ${POM_FILE}"
+                    sh "mvn clean install"
                 }
             }
         }

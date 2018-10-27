@@ -39,15 +39,11 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: ${JDK_BUILDER_NAME}:latest
+          name: java:latest
+          namespace: openshift
       type: Source
     triggers: {}
 parameters:
-- description: The name for the Play Framework builder.
-  displayName: Play builder name
-  name: JDK_BUILDER_NAME
-  required: true
-  value: openshift/java
 - description: The name for the demo application.
   displayName: Application name
   name: APPLICATION_NAME
@@ -68,4 +64,8 @@ parameters:
 - description: Path within Git project to build containing the application
   displayName: Application context directory.
   name: APPLICATION_CONTEXT_DIR
+  value: widget-factory
+- description: Namespace
+  displayName: Namespace
+  name: APPLICATION_NAMESPACE
   value: widget-factory

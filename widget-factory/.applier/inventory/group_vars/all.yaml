@@ -1,6 +1,6 @@
 ---
 application_release_params:
-  APPLICATION_RELEASE: 0.0.1
+  APPLICATION_RELEASE: "{{ application_release }}"
 
 openshift_cluster_content:
 - object: deployment
@@ -13,4 +13,5 @@ openshift_cluster_content:
   content:
   - name: "widget-factory build"
     template: "{{ inventory_dir }}/../templates/build.yaml"
+    params: "{{ inventory_dir }}/../params/version"
     namespace: widget-factory

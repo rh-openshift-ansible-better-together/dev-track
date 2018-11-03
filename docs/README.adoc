@@ -14,6 +14,12 @@ The goal of this lab is to show how the [OpenShift Container Platform](https://d
 and [Ansible Automation](https://www.ansible.com/resources/get-started) can build on
 each other to increase innovation and accelerate delivery.
 
+First we'll introduce how Ansible can be used to automate provisioning and configuration
+of application dependencies. Then we'll look at how we can leverage Ansible for application
+configuration within OpenShift as part of a pipeline. Finally, we will dig into how the
+[OpenShift Ansible Broker](https://docs.openshift.com/container-platform/3.11/architecture/service_catalog/ansible_service_broker.html)
+adds self-service automation to the platform.
+
 == 1 Install MySQL Server with Ansible Tower
 
 === 1.1 Introduction to Ansible Engine and Ansible Tower
@@ -53,6 +59,8 @@ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
 === 3.2 Automation Service Broker
 
 === 3.3 Build an APB
+
+Reuse parts of playbook from section 1
 
 === 3.4 Provision Database and Credentials
 

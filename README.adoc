@@ -27,7 +27,7 @@
 ** [ ] liquibase
 ** [ ] flyway
 ** [x] spring commandlinerunner bean + hibernate
-* Minimize required participant tooling
+* Minimize required participant tooling (host, jump box)
 ** [ ] maven
 ** [ ] jdk
 ** [ ] git
@@ -35,6 +35,9 @@
 ** [ ] msyql
 ** [x] ssh/putty
 ** [x] bash
+** [x] ansible-playbook
+** [x] ansible-galaxy
+** [ ] apb
 
 === Tasks
 

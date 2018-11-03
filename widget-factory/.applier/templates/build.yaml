@@ -49,10 +49,6 @@ parameters:
   name: APPLICATION_NAME
   required: true
   value: widget-factory
-- description: Tag for current release of widget application
-  displayName: Image release tag
-  name: APPLICATION_RELEASE
-  required: true
 - description: Git source URI for application
   displayName: Application source url
   name: APPLICATION_SOURCE_REPOSITORY_URL

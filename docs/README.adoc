@@ -34,14 +34,16 @@ adds self-service automation to the platform.
 
 == 2 Deploy Application
 
-`oc new-project widget-factory`
+`$ oc new-project widget-factory`
 
 === 2.1 Deploy Jenkins (Template Service Broker)
 
 === 2.2 Configure Ansible-Maven Agent
 
 ```
-oc import-image my-openshift3/jenkins-slave-base-rhel7 \
+$ git checkout section-2
+// REMOVE
+$ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
  --from=registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7 \
  --confirm
 ```
@@ -60,7 +62,12 @@ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
 
 === 3.3 Build an APB
 
-Reuse parts of playbook from section 1
+```
+$ git checkout section-3
+$ cd database-provision-apb
+...
+$ apb prepare
+```
 
 === 3.4 Provision Database and Credentials
 

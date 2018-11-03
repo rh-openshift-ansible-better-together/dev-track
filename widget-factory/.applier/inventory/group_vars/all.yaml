@@ -1,14 +1,16 @@
 ---
+application_release_params:
+  APPLICATION_RELEASE: "{{ application_release }}"
+
 openshift_cluster_content:
 - object: deployment
   content:
   - name: "widget-factory-deploy"
     template: "{{ inventory_dir }}/../templates/deploy.yaml"
-    params: "{{ inventory_dir }}/../params/version"
+    params_from_vars: "{{ application_release_params }}"
     namespace: widget-factory
 - object: build
   content:
   - name: "widget-factory build"
     template: "{{ inventory_dir }}/../templates/build.yaml"
-    params: "{{ inventory_dir }}/../params/version"
     namespace: widget-factory

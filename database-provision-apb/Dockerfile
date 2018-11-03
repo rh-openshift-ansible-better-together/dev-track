@@ -1,0 +1,13 @@
+FROM ansibleplaybookbundle/apb-base
+
+LABEL "com.redhat.apb.spec"=\
+"dmVyc2lvbjogMS4wCm5hbWU6IGRhdGFiYXNlLXByb3Zpc2lvbgpkZXNjcmlwdGlvbjogeW91ciBk\
+ZXNjcmlwdGlvbgpiaW5kYWJsZTogRmFsc2UKYXN5bmM6IG9wdGlvbmFsCm1ldGFkYXRhOgogIGRp\
+c3BsYXlOYW1lOiBkYXRhYmFzZS1wcm92aXNpb24KcGxhbnM6CiAgLSBuYW1lOiBkZWZhdWx0CiAg\
+ICBkZXNjcmlwdGlvbjogVGhpcyBkZWZhdWx0IHBsYW4gZGVwbG95cyBkYXRhYmFzZS1wcm92aXNp\
+b24KICAgIGZyZWU6IFRydWUKICAgIG1ldGFkYXRhOiB7fQogICAgcGFyYW1ldGVyczogW10="
+
+COPY playbooks /opt/apb/actions
+COPY . /opt/ansible/roles/database-provision
+RUN chmod -R g=u /opt/{ansible,apb}
+USER apb

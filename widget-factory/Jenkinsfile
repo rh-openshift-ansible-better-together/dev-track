@@ -42,8 +42,15 @@ pipeline {
                     openshift.withCluster() {
                         openshift.withProject(NAMESPACE) {
                             openshift.selector("bc", "${APPLICATION_NAME}").startBuild().logs("-f")
-                            // watch build
-                            // tag
+                            def blds = openshift.selector("bc", "${APPLICATION_NAME}").related('builds')
+                            timeout(time: 20, unit: 'MINUTES') {
+                                blds.untilEach {
+                                    if (it.object().status.phase == "Failed") {
+                                        error("Build failed")
+                                    }
+                                    return it.object().status.phase == "Complete"
+                                }
+                            }
                         }
                     }
                 }
@@ -51,46 +58,39 @@ pipeline {
         }
 
         // minishift doesn't resolve docker-registry.default.svc https://github.com/minishift/minishift-centos-iso/issues/222
-        stage('Minishift update to resolve image') {
+//        stage('Minishift update to resolve image') {
+//            steps {
+//                sh """
+//                    oc patch deploy ${APPLICATION_NAME} -p '{"spec": {"template": { "spec": {"containers": [{"name":"widget-factory","image":"172.30.1.1:5000/widget-factory/widget-factory:0.0.1"}]}}}}'
+//                """
+//            }
+//        }
+
+        stage('Deploy to Dev') {
             steps {
-                sh """
-                    oc patch deploy ${APPLICATION_NAME} -p '{"spec": {"template": { "spec": {"containers": [{"name":"widget-factory","image":"172.30.1.1:5000/widget-factory/widget-factory:0.0.1"}]}}}}'
-                """
-//                script {
-//                    openshift.withCluster() {
-//                        openshift.withProject(NAMESPACE) {
-//                            openshift.selector("deploy/${APPLICATION_NAME}").patch()
-//                        }
-//                    }
-//                }
+                script {
+                    openshift.withCluster() {
+                        openshift.tag("${env.NAMESPACE}/${env.APPLICATION_NAME}:latest", "${env.NAMESPACE}/${env.APP_NAME}:${APPLICATION_RELEASE}")
+                    }
+                }
             }
         }
 
-//        stage('Deploy to Dev') {
-//            steps {
-//                script {
-//                    openshift.withCluster() {
-//                        openshift.tag("${env.STAGE0}/${env.APPLICATION_NAME}:latest", "${env.STAGE1}/${env.APP_NAME}:latest")
-//                    }
-//                }
-//            }
-//        }
-//
-//        stage('Verify Deployment to Dev') {
-//            steps {
-//                script {
-//                    openshift.withCluster() {
-//                        openshift.withProject("${STAGE1}") {
-//                            def dcObj = openshift.selector('deployment', env.APPLICATION_NAME).object()
-//                            def podSelector = openshift.selector('pod', [deployment: "${APPLICATION_NAME}-${dcObj.status.latestVersion}"])
-//                            podSelector.untilEach {
-//                                echo "pod: ${it.name()}"
-//                                return it.object().status.containerStatuses[0].ready
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        stage('Verify Deployment to Dev') {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject("${STAGE1}") {
+                            def dcObj = openshift.selector('deployment', env.APPLICATION_NAME).object()
+                            def podSelector = openshift.selector('pod', [deployment: "${APPLICATION_NAME}-${dcObj.status.latestVersion}"])
+                            podSelector.untilEach {
+                                echo "pod: ${it.name()}"
+                                return it.object().status.containerStatuses[0].ready
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 ---
 application_release_params:
-  APPLICATION_RELEASE: "{{ application_release }}"
+  APPLICATION_RELEASE: 0.0.1
 
 openshift_cluster_content:
 - object: deployment

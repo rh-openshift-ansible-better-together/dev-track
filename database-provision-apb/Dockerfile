@@ -8,6 +8,6 @@ ICBkZXNjcmlwdGlvbjogVGhpcyBkZWZhdWx0IHBsYW4gZGVwbG95cyBkYXRhYmFzZS1wcm92aXNp\
 b24KICAgIGZyZWU6IFRydWUKICAgIG1ldGFkYXRhOiB7fQogICAgcGFyYW1ldGVyczogW10="
 
 COPY playbooks /opt/apb/actions
-COPY . /opt/ansible/roles/database-provision
+COPY . /opt/ansible/roles/database-provision-apb
 RUN chmod -R g=u /opt/{ansible,apb}
 USER apb

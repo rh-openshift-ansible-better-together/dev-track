@@ -13,5 +13,5 @@ openshift_cluster_content:
   content:
   - name: "widget-factory build"
     template: "{{ inventory_dir }}/../templates/build.yaml"
-    params: "{{ inventory_dir }}/../params/version"
+    params: "{{ inventory_dir }}/../params/empty"
     namespace: widget-factory

@@ -80,6 +80,9 @@ pipeline {
                         openshift.withProject(NAMESPACE) {
                             timeout(time: 5, unit: 'MINUTES') {
                                 def deployment = openshift.selector('deployment', env.APPLICATION_NAME)
+                                patch = deployment.object()
+                                patch.spec.replicas = 1
+                                openshift.apply(patch)
                                 deployment.rollout().resume()
                                 deployment.rollout().status()
                             }

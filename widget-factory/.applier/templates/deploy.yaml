@@ -17,7 +17,7 @@ objects:
       group: ${APPLICATION_NAME}
     namespace: "${APPLICATION_NAMESPACE}"
   spec:
-    replicas: 1
+    replicas: 0
     selector:
       matchLabels:
         application: ${APPLICATION_NAME}

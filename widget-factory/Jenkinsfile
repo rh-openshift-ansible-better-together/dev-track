@@ -32,6 +32,7 @@ pipeline {
                 dir(env.APPLICATION_CONTEXT_DIR) {
                     sh "ansible-galaxy install -r requirements.yml --roles-path=galaxy"
                     sh "ansible-playbook -i .applier/inventory/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml -e application_release=${APPLICATION_RELEASE}"
+                    openshift.selector('deployment', env.APPLICATION_NAME).rollout().pause()
                 }
             }
         }
@@ -73,12 +74,9 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(NAMESPACE) {
-                            def dcObj = openshift.selector('deployment', env.APPLICATION_NAME).object()
-                            def podSelector = openshift.selector('pod', [deployment: "${APPLICATION_NAME}-${dcObj.status.latestVersion}"])
-                            podSelector.untilEach {
-                                echo "pod: ${it.name()}"
-                                return it.object().status.containerStatuses[0].ready
-                            }
+                            def deployment = openshift.selector('deployment', env.APPLICATION_NAME)
+                            deployment.rollout().resume()
+                            deployment.rollout().status()
                         }
                     }
                 }

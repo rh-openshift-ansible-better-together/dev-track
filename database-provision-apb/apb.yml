@@ -1,9 +1,9 @@
 ---
 
-version: 1.0
+version: 1.1
 name: database-provision-apb
-description: provision mysql database on remote server
-bindable: True
+description: "provision mysql database on remote server"
+bindable: true
 async: optional
 tags:
   - database
@@ -14,9 +14,9 @@ metadata:
   documentationUrl: "https://github.com/srang/rh-openshift-ansible-broker-lab/tree/master/database-provision-apb"
 plans:
   - name: default
-    description: A MySQL Database on existing MySQL server
-    free: True
-    default: True
+    description: "A MySQL Database on existing MySQL server"
+    free: true
+    default: true
     metadata:
       displayName: Default
     parameters: []

@@ -14,10 +14,10 @@ pipeline {
                 }
             }
         }
-        stage('build agent') {
+        stage('build apb') {
             steps {
                 sh """
-                    oc start-build -F bc/database-provisioner-apb
+                    oc start-build -F bc/database-provision-apb
                     apb broker list
                 """
             }

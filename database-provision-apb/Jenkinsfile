@@ -17,7 +17,7 @@ pipeline {
         stage('build apb') {
             steps {
                 sh """
-                    oc start-build -F bc/database-provision-apb
+                    oc start-build -F --from-dir . database-provision-apb
                     apb broker list
                 """
             }

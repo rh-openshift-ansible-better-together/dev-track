@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('configure build') {
             steps {
-                dir(env.BUILDER_CONTEXT_DIR) {
+                dir(env.PROVISIONER_CONTEXT_DIR) {
                     sh """
                         oc apply -f provisioner-build.yaml
                     """
@@ -18,6 +18,7 @@ pipeline {
             steps {
                 sh """
                     oc start-build -F bc/database-provisioner-apb
+                    apb broker list
                 """
             }
         }

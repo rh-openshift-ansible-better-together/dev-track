@@ -22,6 +22,8 @@ plans:
       - name: mysql_database
         description: The name of the MySQL database
         type: string
+        display_type: text
+        required: true
         pattern: "^[a-zA-Z0-9_]*[a-zA-Z_]+[a-zA-Z0-9_]*$"
       - name: mysql_user
         description: Username that will be used to connect to MySQL
@@ -38,8 +40,9 @@ plans:
         description: Root users password for provisioning database
         type: string
         required: true
-        display_name: root_password
+        display_type: password
       - name: mysql_host
         type: string
+        display_type: text
         description: Hostname for MySQL server
         required: true

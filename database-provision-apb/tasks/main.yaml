@@ -1,2 +1,3 @@
 ---
-# tasks file for database-provision
+
+- include_tasks: configure-server.yaml

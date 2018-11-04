@@ -1,0 +1,19 @@
+---
+
+- name: Create user
+  mysql_user: name={{ mysql_user }} password={{ mysql_password }} priv={{ mysql_privileges }} host={{ mysql_host }} state={{ state }}
+
+- name: Create database
+  mysql_db: name={{ mysql_db }} state={{ state }}
+
+- name: encode bind credentials
+  asb_encode_binding:
+      fields:
+        DB_USER: "{{ mysql_user }}"
+        DB_PASSWORD: "{{ mysql_password }}"
+        DB_NAME: "{{ mysql_database }}"
+  when: state == "present"
+
+- name: "Update last operation"
+  asb_last_operation:
+    description: "100%: Done"

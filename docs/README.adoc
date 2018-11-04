@@ -66,7 +66,9 @@ $ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
 $ git checkout section-3
 $ cd database-provision-apb
 ...
-$ apb prepare
+$ apb bundle prepare
+$ oc new-build --binary=true --name database-provision-apb
+$ oc start-build --follow --from-dir . database-provision-apb
 ```
 
 === 3.4 Provision Database and Credentials

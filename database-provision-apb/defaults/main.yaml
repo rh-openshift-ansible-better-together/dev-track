@@ -1,2 +1,4 @@
 ---
-# defaults file for database-provision
+mysql_database: devel
+mysql_user: devel
+mysql_password: changeme

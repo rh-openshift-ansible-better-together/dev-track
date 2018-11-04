@@ -32,7 +32,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(NAMESPACE) {
-                            openshift.selector("bc", "${APPLICATION_NAME}").startBuild().logs("-f")
+                            openshift.selector("bc", "${APPLICATION_NAME}").startBuild("--from-dir=${env.PROVISIONER_CONTEXT_DIR}").logs("-f")
                         }
                     }
                 }

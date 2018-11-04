@@ -26,11 +26,8 @@ objects:
         namespace: openshift
     runPolicy: Serial
     source:
-      contextDir: "${SOURCE_CONTEXT_DIR}"
-      git:
-        ref: "${SOURCE_REPOSITORY_REF}"
-        uri: "${SOURCE_REPOSITORY_URL}"
-      type: Git
+      binary: {}
+      type: Binary
     strategy:
       dockerStrategy:
         noCache: true

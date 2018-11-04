@@ -92,16 +92,9 @@ objects:
       application: ${APPLICATION_NAME}
     type: ClusterIP
 parameters:
-- description: The name for the Play Framework builder.
-  displayName: Play builder name
-  name: APPLICATION_NAME
-  required: true
+- name: APPLICATION_NAME
   value: widget-factory
-- description: Tag for current release of widget application
-  displayName: Image release tag
-  name: APPLICATION_RELEASE
+- name: APPLICATION_RELEASE
   required: true
-- description: Namespace
-  displayName: Namespace
-  name: APPLICATION_NAMESPACE
+- name: APPLICATION_NAMESPACE
   value: widget-factory

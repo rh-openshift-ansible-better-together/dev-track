@@ -78,38 +78,23 @@ objects:
         - name: "PROVISIONER_CONTEXT_DIR"
           value: "${PROVISIONER_CONTEXT_DIR}"
 parameters:
-- description: The name for the application.
-  name: APPLICATION_NAME
-  required: true
+- name: APPLICATION_NAME
   value: widget-factory
-- description: The name for the application.
-  name: BUILDER_NAME
-  required: true
+- name: BUILDER_NAME
   value: widget-jenkins-agent
 - name: PROVISIONER_NAME
   value: database-provision-apb
-- description: The namespace to deploy into
-  name: APPLICATION_NAMESPACE
-  required: true
+- name: APPLICATION_NAMESPACE
   value: widget-factory
-- description: Git source URI for application
-  displayName: Application source url
-  name: APPLICATION_SOURCE_REPOSITORY_URL
+- name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
-- description: Play Framework application source branch/tag reference.
-  displayName: Play application source branch/tag reference.
-  name: APPLICATION_SOURCE_REPOSITORY_REF
+- name: APPLICATION_SOURCE_REPOSITORY_REF
   value: master
-- description: Path within Git project to build containing the application
-  displayName: Application context directory.
-  name: APPLICATION_CONTEXT_DIR
+- name: APPLICATION_CONTEXT_DIR
   value: widget-factory
-- description: Path within Git project to build containing the application
-  displayName: Application context directory.
-  name: BUILDER_CONTEXT_DIR
+- name: BUILDER_CONTEXT_DIR
   value: widget-jenkins-agent
 - name: PROVISIONER_CONTEXT_DIR
   value: database-provision-apb
-- description: Path within Git project pointing to the pipeline run script
-  name: PIPELINE_SCRIPT
+- name: PIPELINE_SCRIPT
   value: Jenkinsfile

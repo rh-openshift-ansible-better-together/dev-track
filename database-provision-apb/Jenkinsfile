@@ -9,7 +9,7 @@ pipeline {
             steps {
                 dir(env.PROVISIONER_CONTEXT_DIR) {
                     sh """
-                        oc apply -f provisioner-build.yaml
+                        oc process -f provisioner-build.yaml | oc apply -f-
                     """
                 }
             }

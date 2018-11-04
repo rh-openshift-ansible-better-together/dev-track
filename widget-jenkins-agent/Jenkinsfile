@@ -33,9 +33,8 @@ pipeline {
                         openshift.withProject(NAMESPACE) {
                             openshift.selector("bc", "${APPLICATION_NAME}").startBuild()
                             def blds = openshift.selector("bc", "${APPLICATION_NAME}").related('builds')
-                            echo blds
                             timeout(time: 5, unit: 'MINUTES') {
-                                blds.untilEach {
+                                blds.untilEach(1) {
                                     if (it.object().status.phase == "Failed") {
                                         error("Build failed")
                                     }

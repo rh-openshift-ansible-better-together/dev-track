@@ -1,4 +1,9 @@
 #!/usr/bin/env groovy
+openshift.withCluster() {
+    env.NAMESPACE = openshift.project()
+    env.APPLICATION_NAME = 'widget-jenkins-agent'
+    echo "Starting Pipeline for ${APPLICATION_NAME}..."
+}
 
 pipeline {
     agent {
@@ -7,6 +12,13 @@ pipeline {
     stages {
         stage('configure build') {
             steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(NAMESPACE) {
+                            openshift.process(readFile("${env.BUILDER_CONTEXT_DIR}/builder.yaml"))
+                        }
+                    }
+                }
                 dir(env.BUILDER_CONTEXT_DIR) {
                     sh """
                         oc process -f builder.yaml | oc apply -f-
@@ -16,9 +28,22 @@ pipeline {
         }
         stage('build agent') {
             steps {
-                sh """
-                    oc start-build -F bc/widget-jenkins-agent
-                """
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(NAMESPACE) {
+                            openshift.selector("bc", "${APPLICATION_NAME}").startBuild().logs("-f")
+                            def blds = openshift.selector("bc", "${APPLICATION_NAME}").related('builds')
+                            timeout(time: 5, unit: 'MINUTES') {
+                                blds.untilEach {
+                                    if (it.object().status.phase == "Failed") {
+                                        error("Build failed")
+                                    }
+                                    return it.object().status.phase == "Complete"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

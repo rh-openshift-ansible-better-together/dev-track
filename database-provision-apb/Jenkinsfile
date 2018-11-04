@@ -1,4 +1,9 @@
 #!/usr/bin/env groovy
+openshift.withCluster() {
+    env.NAMESPACE = openshift.project()
+    env.APPLICATION_NAME = 'database-provision-apb'
+    echo "Starting Pipeline for ${APPLICATION_NAME}..."
+}
 
 pipeline {
     agent {
@@ -7,6 +12,13 @@ pipeline {
     stages {
         stage('configure build') {
             steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(NAMESPACE) {
+                            openshift.process(readFile("${env.PROVISIONER_CONTEXT_DIR}/provisioner-build.yaml"))
+                        }
+                    }
+                }
                 dir(env.PROVISIONER_CONTEXT_DIR) {
                     sh """
                         oc process -f provisioner-build.yaml | oc apply -f-
@@ -16,8 +28,23 @@ pipeline {
         }
         stage('build apb') {
             steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(NAMESPACE) {
+                            openshift.selector("bc", "${APPLICATION_NAME}").startBuild().logs("-f")
+                            def blds = openshift.selector("bc", "${APPLICATION_NAME}").related('builds')
+                            timeout(time: 5, unit: 'MINUTES') {
+                                blds.untilEach {
+                                    if (it.object().status.phase == "Failed") {
+                                        error("Build failed")
+                                    }
+                                    return it.object().status.phase == "Complete"
+                                }
+                            }
+                        }
+                    }
+                }
                 sh """
-                    oc start-build -F --from-dir ${env.PROVISIONER_CONTEXT_DIR} database-provision-apb
                     apb broker list
                 """
             }

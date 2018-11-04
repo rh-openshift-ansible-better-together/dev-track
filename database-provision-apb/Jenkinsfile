@@ -22,6 +22,7 @@ pipeline {
                 dir(env.PROVISIONER_CONTEXT_DIR) {
                     sh """
                         oc process -f provisioner-build.yaml | oc apply -f-
+                        apb bundle prepare
                     """
                 }
             }
@@ -36,7 +37,10 @@ pipeline {
                     }
                 }
                 sh """
-                    apb broker list
+                    apb bundle list -v
+                    apb broker catalog -v
+                    apb broker bootstrap -v
+                    apb broker catalog -v
                 """
             }
         }

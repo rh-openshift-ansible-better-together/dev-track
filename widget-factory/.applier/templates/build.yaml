@@ -42,7 +42,6 @@ objects:
           name: java:latest
           namespace: openshift
       type: Source
-    triggers: {}
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory

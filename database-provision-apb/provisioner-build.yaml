@@ -42,7 +42,6 @@ objects:
       type: Docker
     failedBuildsHistoryLimit: 5
     successfulBuildsHistoryLimit: 5
-    triggers: {}
 parameters:
 - name: APPLICATION_NAME
   value: database-provision-apb

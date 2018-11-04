@@ -44,14 +44,13 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        noCache: true
-        forcePull: true
-        dockerfilePath: "${DOCKERFILE_PATH}"
         from:
           kind: DockerImage
           name: "${BUILDER_IMAGE_NAME}"
+        noCache: true
+        forcePull: true
+        dockerfilePath: "${DOCKERFILE_PATH}"
       type: Docker
-    triggers: {}
 parameters:
 - name: APPLICATION_NAME
   value: widget-jenkins-agent

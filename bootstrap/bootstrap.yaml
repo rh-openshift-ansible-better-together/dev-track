@@ -53,6 +53,30 @@ objects:
           value: "${APPLICATION_SOURCE_REPOSITORY_URL}"
         - name: "BUILDER_CONTEXT_DIR"
           value: "${BUILDER_CONTEXT_DIR}"
+- kind: "BuildConfig"
+  apiVersion: "v1"
+  metadata:
+    labels:
+      application: "${PROVISIONER_NAME}-pipeline"
+      group: "${APPLICATION_NAME}"
+    name: "${PROVISIONER_NAME}-pipeline"
+    namespace: "${APPLICATION_NAMESPACE}"
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${APPLICATION_SOURCE_REPOSITORY_URL}
+        ref: ${APPLICATION_SOURCE_REPOSITORY_REF}
+      contextDir: ${PROVISIONER_CONTEXT_DIR}
+    strategy:
+      type: "JenkinsPipeline"
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: ${PIPELINE_SCRIPT}
+        env:
+        - name: "APPLICATION_SOURCE_REPOSITORY_URL"
+          value: "${APPLICATION_SOURCE_REPOSITORY_URL}"
+        - name: "PROVISIONER_CONTEXT_DIR"
+          value: "${PROVISIONER_CONTEXT_DIR}"
 parameters:
 - description: The name for the application.
   name: APPLICATION_NAME
@@ -62,6 +86,8 @@ parameters:
   name: BUILDER_NAME
   required: true
   value: widget-jenkins-agent
+- name: PROVISIONER_NAME
+  value: database-provision-apb
 - description: The namespace to deploy into
   name: APPLICATION_NAMESPACE
   required: true
@@ -82,6 +108,8 @@ parameters:
   displayName: Application context directory.
   name: BUILDER_CONTEXT_DIR
   value: widget-jenkins-agent
+- name: PROVISIONER_CONTEXT_DIR
+  value: database-provision-apb
 - description: Path within Git project pointing to the pipeline run script
   name: PIPELINE_SCRIPT
   value: Jenkinsfile

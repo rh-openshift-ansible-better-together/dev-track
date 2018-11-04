@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewBuild
+  creationTimestamp: null
+  labels:
+    build: database-provision-apb
+  name: database-provision-apb
+  namespace: widget-factory
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: database-provision-apb:latest
+      namespace: openshift
+  runPolicy: Serial
+  source:
+    binary: {}
+    type: Binary
+  strategy:
+    dockerStrategy: {}
+    type: Docker
+  failedBuildsHistoryLimit: 5
+  successfulBuildsHistoryLimit: 5

@@ -66,8 +66,11 @@ $ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
 $ git checkout section-3
 $ cd database-provision-apb
 ...
-$ apb bundle prepare
 $ oc new-build --binary=true --name database-provision-apb
+$ oc policy add-role-to-user system:image-builder system:serviceaccount:widget-factory:builder -n openshift
+$ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift" } } } }'
+...
+$ apb bundle prepare
 $ oc start-build --follow --from-dir . database-provision-apb
 ```
 

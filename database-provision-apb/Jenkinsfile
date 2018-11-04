@@ -1,0 +1,25 @@
+#!/usr/bin/env groovy
+
+pipeline {
+    agent {
+        label 'widget-jenkins-agent'
+    }
+    stages {
+        stage('configure build') {
+            steps {
+                dir(env.BUILDER_CONTEXT_DIR) {
+                    sh """
+                        oc apply -f provisioner-build.yaml
+                    """
+                }
+            }
+        }
+        stage('build agent') {
+            steps {
+                sh """
+                    oc start-build -F bc/database-provisioner-apb
+                """
+            }
+        }
+    }
+}

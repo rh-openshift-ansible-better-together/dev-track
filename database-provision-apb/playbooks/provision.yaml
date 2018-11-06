@@ -1,3 +1,5 @@
+---
+
 - name: database-provision playbook to provision the application
   hosts: localhost
   gather_facts: false

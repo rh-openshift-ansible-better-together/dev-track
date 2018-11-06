@@ -1,4 +1,4 @@
 ---
-mysql_database: devel
-mysql_user: devel
-mysql_password: changeme
+#mysql_database: devel
+#mysql_user: devel
+#mysql_password: changeme

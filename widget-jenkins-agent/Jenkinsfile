@@ -32,6 +32,7 @@ pipeline {
                     openshift.withCluster() {
                         openshift.withProject(NAMESPACE) {
                             openshift.selector("bc", "${APPLICATION_NAME}").startBuild().logs("-f")
+                            // TODO verify succesful build
                         }
                     }
                 }

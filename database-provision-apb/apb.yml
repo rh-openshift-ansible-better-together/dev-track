@@ -11,6 +11,7 @@ tags:
 metadata:
   displayName: "Remote MySQL Database (APB)"
   console.openshift.io/iconClass: icon-mysql-database
+  dependencies: []
   documentationUrl: "https://github.com/srang/rh-openshift-ansible-broker-lab/tree/master/database-provision-apb"
 plans:
   - name: default

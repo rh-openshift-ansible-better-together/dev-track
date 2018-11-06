@@ -38,6 +38,7 @@ pipeline {
                 }
                 sh """
                     # workaround for inaccessible route
+                    
                     curl -H "Authorization: Bearer \$(oc whoami -t)" -k -X POST https://asb.openshift-ansible-service-broker.svc:1338/ansible-service-broker/v2/bootstrap
                     apb bundle list -v
                     apb broker catalog -v

@@ -1,0 +1,10 @@
+---
+
+- name: Install MySQL
+  yum: 
+    name:
+      - mysql55-mysql
+      - mysql55-mysql-server
+      - MySQL-python
+    state: present
+  notify: start MySQL

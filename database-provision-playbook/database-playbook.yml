@@ -1,0 +1,47 @@
+---
+- name: install mysql
+  hosts: db-server
+  tasks:
+  - name: install mysql-server
+    become: yes
+    become_method: sudo
+    yum:
+      name:
+      - mysql55-mysql
+      - mysql55-mysql-server
+      - MySQL-python
+      state: present
+    notify: restart mysql
+
+  - name: ensure mysqld running
+    service:
+      name: mysqld
+      state: started
+
+  - name: widget user
+    mysql_user:
+      name: 'widget'
+      host: 'localhost'
+      password: 'widget01'
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+  - name: remove test database
+    mysql_db:
+      name: 'test'
+      state: 'absent'
+
+  - name: widget database
+    mysql_db:
+      name: 'widget'
+      state: 'present'
+      collation: 'utf8_general_ci'
+      encoding: 'utf8'
+
+  handlers:
+  - name: restart mysql
+    service:
+      name: mysqld
+      state: restarted
+      enabled: yes
+      sleep: 5

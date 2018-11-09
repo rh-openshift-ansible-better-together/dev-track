@@ -7,4 +7,4 @@
       - mysql55-mysql-server
       - MySQL-python
     state: present
-  notify: start MySQL
+  notify: restart mysql

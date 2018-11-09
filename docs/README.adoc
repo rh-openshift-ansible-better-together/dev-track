@@ -34,19 +34,23 @@ adds self-service automation to the platform.
 
 `$ oc new-project widget-factory`
 
-=== 2.1 Deploy Jenkins (Template Service Broker)
+=== 2.1 Auto-deploy Jenkins (Template Service Broker)
 
-=== 2.2 Configure Ansible-Maven Agent
+https://docs.openshift.com/container-platform/3.10/install_config/configuring_pipeline_execution.html
+
+=== 2.2 Configure `widget-jenkins-agent`
 
 ```
 $ git checkout section-2
-// REMOVE
-$ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
- --from=registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7 \
- --confirm
+$ cd ../widget-jenkins-agent
+$ oc process -f widget-pipeline.yaml -p section-2 | oc apply -f-
 ```
 
 === 2.3 Review Application
+
+```
+$ oc secrets new generic mysql --from-generic=username=dummy --from-generic=password=dummy
+```
 
 === 2.4 Ansible-Applier
 
@@ -62,14 +66,19 @@ $ oc import-image my-openshift3/jenkins-slave-base-rhel7 \
 
 ```
 $ git checkout section-3
-$ cd database-provision-apb
+$ cd ../database-provision-apb
+
 ...
+
 $ oc new-build --binary=true --name database-provision-apb
 $ oc policy add-role-to-user system:image-builder system:serviceaccount:widget-factory:builder -n openshift
 $ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift" } } } }'
+
 ...
+
 $ apb bundle prepare
 $ oc start-build --follow --from-dir . database-provision-apb
+$ apb broker bootstrap
 ```
 
 === 3.4 Provision Database and Credentials

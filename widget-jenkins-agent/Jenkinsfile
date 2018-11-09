@@ -15,13 +15,13 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(NAMESPACE) {
-                            openshift.process(readFile("${env.BUILDER_CONTEXT_DIR}/builder.yaml"))
+                            openshift.process(readFile("${env.BUILDER_CONTEXT_DIR}/builder.yml"))
                         }
                     }
                 }
                 dir(env.BUILDER_CONTEXT_DIR) {
                     sh """
-                        oc process -f builder.yaml | oc apply -f-
+                        oc process -f builder.yml | oc apply -f-
                     """
                 }
             }

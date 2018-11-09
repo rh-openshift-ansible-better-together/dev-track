@@ -17,8 +17,7 @@ pipeline {
     }
     stages {
         // Run Maven build, skipping tests
-        /*
-        stage('Build') {
+        stage('Build & Test Application') {
             agent { label 'maven' }
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
@@ -26,16 +25,12 @@ pipeline {
                 }
             }
         }
-        */
 
         // apply ansible config
         stage('Apply OpenShift Manifests with Ansible') {
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
                     sh """
-                        ansible --version
-                        export ANSIBLE_LOCAL_TEMP=/tmp/.ansible
-                        export ANSIBLE_REMOTE_TEMP=/tmp/.ansible
                         ansible-galaxy install -r requirements.yml --roles-path=galaxy
                         ansible-playbook -i .applier/inventory/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml -e application_release=${env.APPLICATION_RELEASE}
                     """

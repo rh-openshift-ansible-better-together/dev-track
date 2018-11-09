@@ -31,8 +31,6 @@ pipeline {
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
                     sh """
-                        export ANSIBLE_LOCAL_TEMP=\$(pwd)/.ansible 
-                        mkdir -p /home/jenkins/.ansible/tmp/
                         ansible-galaxy install -r requirements.yml --roles-path=galaxy
                         ansible-playbook -i .applier/inventory/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml -e application_release=${env.APPLICATION_RELEASE}
                     """

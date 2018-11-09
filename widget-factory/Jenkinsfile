@@ -4,6 +4,7 @@ openshift.withCluster() {
     env.NAMESPACE = openshift.project()
     env.APPLICATION_NAME = "widget-factory"
     env.APPLICATION_RELEASE = "0.0.1"
+    env.DEFAULT_LOCAL_TMP = '/tmp/.ansible'
     echo "Starting Pipeline for ${APPLICATION_NAME}..."
 }
 

@@ -2,7 +2,7 @@
 
 ## Section -1
 sudo yum install -y git apb
-git checkout git@github.com:srang/rh-openshift-ansible-broker-lab.git
+git clone https://github.com/srang/rh-openshift-ansible-broker-lab.git
 GIT_BASE="$(pwd)/rh-openshift-ansible-broker-lab"
 
 ## Section 0

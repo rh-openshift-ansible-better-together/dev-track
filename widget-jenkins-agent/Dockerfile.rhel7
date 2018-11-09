@@ -13,16 +13,17 @@ LABEL name="widget-jenkins-agent" \
 ENV ANSIBLE_VERSION=2.5.8 \
     ANSIBLE_REVISION=1
 
-RUN INSTALL_PKGS="apb ansible" && \
+RUN INSTALL_PKGS="apb python2-pip" && \
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
     yum install -y --setopt=tsflags=nodocs \
       --disablerepo=* \
       --enablerepo=rhel-7-server-rpms --enablerepo=rhel-7-server-extras-rpms \
-      --enablerepo=rhel-7-server-ansible-2.6-rpms --enablerepo=rhel-7-server-ose-3.11-rpms \
-      $INSTALL_PKGS && \
+      --enablerepo=epel --enablerepo=rhel-7-server-ose-3.11-rpms \
+      $INSTALL_PKGS \
+      https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-${ANSIBLE_VERSION}-${ANSIBLE_REVISION}.el7.ans.noarch.rpm && \
+    rpm -V ansible && \
     ansible --version && \
     apb version && \
-    sed -n -e '/local_/ p' /etc/ansible/ansible.cfg && \
-    echo "local_tmp = /tmp/.ansible/" >> /etc/ansible/ansible.cfg && \
     yum clean all -y && \
     rm -rf /var/cache/yum
 

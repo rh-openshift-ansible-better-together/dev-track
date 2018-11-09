@@ -43,7 +43,7 @@ https://docs.openshift.com/container-platform/3.10/install_config/configuring_pi
 ```
 $ git checkout section-2
 $ cd ../widget-jenkins-agent
-$ oc process -f widget-pipeline.yaml -p section-2 | oc apply -f-
+$ oc process -f widget-pipeline.yml -p section-2 | oc apply -f-
 ```
 
 === 2.3 Review Application

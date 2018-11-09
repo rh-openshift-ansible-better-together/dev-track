@@ -15,13 +15,13 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(NAMESPACE) {
-                            openshift.process(readFile("${env.PROVISIONER_CONTEXT_DIR}/provisioner-build.yaml"))
+                            openshift.process(readFile("${env.PROVISIONER_CONTEXT_DIR}/provisioner-build.yml"))
                         }
                     }
                 }
                 dir(env.PROVISIONER_CONTEXT_DIR) {
                     sh """
-                        oc process -f provisioner-build.yaml | oc apply -f-
+                        oc process -f provisioner-build.yml | oc apply -f-
                         apb bundle prepare
                     """
                 }

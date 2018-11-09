@@ -1,3 +1,3 @@
 ---
 
-- include_tasks: configure-server.yaml
+- include_tasks: configure-server.yml

@@ -6,12 +6,12 @@ openshift_cluster_content:
 - object: deployment
   content:
   - name: "widget-factory-deploy"
-    template: "{{ inventory_dir }}/../templates/deploy.yaml"
+    template: "{{ inventory_dir }}/../templates/deploy.yml"
     params_from_vars: "{{ application_release_params }}"
     namespace: widget-factory
 - object: build
   content:
   - name: "widget-factory build"
-    template: "{{ inventory_dir }}/../templates/build.yaml"
+    template: "{{ inventory_dir }}/../templates/build.yml"
     params: "{{ inventory_dir }}/../params/empty"
     namespace: widget-factory

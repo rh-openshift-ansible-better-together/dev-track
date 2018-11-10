@@ -7,8 +7,8 @@
     become_method: sudo
     yum:
       name:
-      - mysql55-mysql
-      - mysql55-mysql-server
+      - mariadb
+      - mariadb-server
       - MySQL-python
       state: present
     notify: restart mysql

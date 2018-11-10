@@ -11,7 +11,7 @@ cd $(GIT_BASE)/bootstrap
 cd $(GIT_BASE)
 git checkout section-1
 cd $(GIT_BASE)/database-provision-playbook
-ansible-playbook database-playbook.yml -i inventory/
+ansible-playbook -vvv database-playbook.yml -i inventory/
 
 ## Section 2
 cd $(GIT_BASE)

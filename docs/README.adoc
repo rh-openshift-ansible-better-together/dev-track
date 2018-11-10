@@ -26,9 +26,96 @@ adds self-service automation to the platform.
 
 === 1.2 Review Playbook
 
-=== 1.3 Set up Job Template
+First you'll need to connect to your lab. To do that you'll need to ssh using your student account to the Master Node
+for your student account. The command will look like this:
 
-=== 1.4 Provision MySQL server on VM
+```
+$ ssh -o 'StrictHostKeyChecking no' student1@ec2-18-234-37-92.compute-1.amazonaws.com
+```
+
+Alternatively you can skip the `StrictHostKeyChecking` option and just accept host key check prompt.
+
+Once on the Master Node, you'll need to set up shop. First we're gonna install `git` so we can pull down the lab source
+code.
+
+```
+$ sudo yum install -y git
+```
+
+Next we're gonna clone the lab:
+
+```
+$ git clone https://github.com/srang/rh-openshift-ansible-broker-lab.git
+```
+
+Now for convenience let's define an environment variable on our Master Node that says where the source code is:
+
+```
+$ echo export GIT_BASE="$(pwd)/rh-openshift-ansible-broker-lab" >> ~/.bashrc
+$ source ~/.bashrc
+$ cd $GIT_BASE
+```
+
+Finally, we need to make sure we're looking at the right branch of the lab (we're in section 1) so run:
+
+```
+$ git checkout section-1
+```
+
+Go into the `database-provision-playbook` directory and look around. This is a good opportunity to install your favorite
+terminal-based editor. Adventurous developers could also fork the lab repository, clone it locally (to your personal
+machine), edit code in an IDE, and update git remotes to pull from a fork but for the purpose of this lab we will assume
+we're working directly on the Master Node.
+
+=== 1.3 Provision MySQL server on VM
+
+Most of this playbook is pre-configured for you, take a look at `database-provision.yml`. It is installing MariaDB (an
+opensource fork of MySQL), configuring a database on the server, and adding a user for that database. Let's try running
+it!
+
+In order to run this playbook in your environment, you'll need to update the `hosts` file in the inventory folder.
+The username needs to match *your* student account or you will get authentication errors.
+
+```
+[all:vars]
+ansible_user=student1 <- This is the line that needs to be changed
+```
+
+Additionally, you'll need to update `hosts` with the hosts in *your* lab. Update the `[db-server]` section with your
+database node hostname.
+
+```
+[db-server]
+ec2-54-161-113-184.compute-1.amazonaws.com <- This should match your environments Database Node
+```
+
+Once you've made these updates, you're ready to run the playbook.
+
+```
+$ ansible-playbook -vv database-playbook.yml -i inventory/
+```
+
+Let's connect to the database and see what's there
+
+```
+$ mysql --user=widget --password=widget01 widgettest
+```
+
+We should see that our database is _completely_ empty. But we can fix that pretty easily. We're going to jump ahead a
+little bit and "deploy" our widget factory in our workspace and connect to the database there. In order to do that,
+we're also going to need to build and run our application:
+
+```
+$ cd $GIT_BASE/widget-factory
+$ sudo yum install -y rh-maven35 --enablerepo=rhel-server-rhscl-7-rpms
+$ scl enable rh-maven35 bash
+$ mvn clean install -Pdeploy
+```
+
+That was a lot all at once but basically what we did was exactly what we said -- install the build tool for our app,
+then build the app.
+
+=== 1.4 Run Canary Application
 
 == 2 Deploy Application
 

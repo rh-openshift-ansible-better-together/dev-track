@@ -15,7 +15,7 @@ ansible-playbook -vv database-playbook.yml -i inventory/
 cd ${GIT_BASE}/widget-factory
 sudo yum install -y rh-maven35 --enablerepo=rhel-server-rhscl-7-rpms
 scl enable rh-maven35 bash
-mvn clean install -Pdeploy
+mvn clean install -Popenshift
 SPRING_PROFILES_ACTIVE=canary java -jar target/widget-factory.jar &
 curl localhost:8080/widgets
 curl -H 'Content-type: application/json' -d '{"label": "NEW01", "version": "V1", "description" "some new thing"}' localhost:8080/widgets

@@ -129,7 +129,7 @@ spring:
 With that done we can build and run the application on our deployable canary profile:
 
 ```
-$ mvn clean install -Pdeploy
+$ mvn clean install -Popenshift
 $ SPRING_PROFILES_ACTIVE=canary java -jar target/widget-factory.jar &
 ```
 

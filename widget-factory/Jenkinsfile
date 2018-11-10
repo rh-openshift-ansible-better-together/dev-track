@@ -22,7 +22,7 @@ pipeline {
             agent { label 'maven' }
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
-                    sh "mvn clean install"
+                    sh "mvn clean install -Pdebug"
                 }
             }
         }

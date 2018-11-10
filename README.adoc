@@ -20,7 +20,7 @@
 * Repo location (probably not `srang`)
 ** [ ] gpte
 * Java package path
-** [ ] com.github.srang
+** [x] com.github.srang
 ** [ ] com.redhat.widgets
 ** [ ] com.rht.demo
 * Data hydration/Schema generation
@@ -34,31 +34,31 @@
 ** [ ] oc
 ** [ ] msyql
 ** [x] ssh/putty
-** [x] bash
-** [x] ansible-playbook
-** [x] ansible-galaxy
+** [ ] bash
+** [ ] ansible-playbook
+** [ ] ansible-galaxy
 ** [ ] apb
 
 === Tasks
 
 ==== Section 1 - MySQL Server Install
 
-* [ ] Determine installation method - tower, bastion, localhost
-* [ ] Write playbook for configuring MySQL server
+* [x] Determine installation method - tower, bastion, localhost
+* [x] Write playbook for configuring MySQL server
 
 ==== Section 2 - Application Deployment
 
 * [x] Write simple application
-* [ ] Document application
-* [ ] Deploy Jenkins with TSB
-* [ ] Create jenkins-ansible-slave
-* [ ] Add agent to jenkins kubernetes configuration
-* [ ] openshift-applier artifacts for application
-* [ ] Pipeline for build and deploy application
+* [x] Document application
+* [x] Deploy Jenkins with TSB
+* [x] Create jenkins-ansible-slave
+* [x] Add agent to jenkins kubernetes configuration
+* [x] openshift-applier artifacts for application
+* [x] Pipeline for build and deploy application
 
 ==== Section 3 - Integration
 
-* [ ] Automation Service Broker overview
+* [x] Automation Service Broker overview
 * [ ] Playbook Bundle for configuring database
 * [ ] Bind credentials back
 

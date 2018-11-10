@@ -17,6 +17,7 @@
     service:
       name: mariadb
       state: started
+      sleep: 5
     become: yes
     become_method: sudo
 
@@ -27,6 +28,8 @@
       password: 'widget01'
       priv: '*.*:ALL,GRANT'
       state: present
+      login_user: 'root'
+      login_password: 'root'
 
   - name: remove test database
     mysql_db:

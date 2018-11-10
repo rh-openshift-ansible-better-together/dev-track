@@ -29,10 +29,16 @@
       encoding: 'utf8'
       login_user: 'root'
 
+  - name: disable anonymous access
+    mysql_user:
+      name: ''
+      host_all: yes
+      state: absent
+
   - name: widget user
     mysql_user:
       name: 'widget'
-      host: '*'
+      host: '%'
       password: 'widget01'
       priv: 'widgettest.*:ALL,GRANT'
       state: present

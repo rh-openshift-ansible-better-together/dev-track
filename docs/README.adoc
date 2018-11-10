@@ -89,7 +89,8 @@ database node hostname.
 ec2-54-161-113-184.compute-1.amazonaws.com <- This should match your environments Database Node
 ```
 
-Once you've made these updates, you're ready to run the playbook.
+Once you've made these updates, you're ready to run the playbook (it may take a couple minutes on the 'install
+mysql-server' step):
 
 ```
 $ ansible-playbook -vv database-playbook.yml -i inventory/
@@ -99,7 +100,9 @@ Let's connect to the database and see what's there
 
 ```
 $ mysql --user=widget --password=widget01 widgettest
+MariaDB [widgettest]> show tables;
 ```
+
 We should see that our database is _completely_ empty. But we can fix that pretty easily. We're going to jump ahead a
 little bit and "deploy" our widget factory in our workspace and connect to the database there.
 
@@ -120,7 +123,7 @@ in the `src/main/resources` folder, and update the jdbc url to have the correct 
 spring:
   jpa.hibernate.ddl-auto: create
   datasource:
-    url: jdbc:mysql://ec2-18-234-37-92.compute-1.amazonaws.com:3306/widgettest <- this is the line
+    url: jdbc:mysql://ec2-18-234-37-92.compute-1.amazonaws.com:3306/widgettest <- this is the line needs updated hostname
 ```
 
 With that done we can build and run the application on our deployable canary profile:

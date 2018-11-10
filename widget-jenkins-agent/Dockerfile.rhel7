@@ -10,9 +10,7 @@ LABEL name="widget-jenkins-agent" \
       io.k8s.display-name="Widget Jenkins Agent" \
       io.openshift.tags="openshift,jenkins,ansible,oc"
 
-ENV ANSIBLE_VERSION=2.7.1 \
-    ANSIBLE_REVISION=1 \
-    ANSIBLE_LOCAL_TEMP=/tmp/ansible
+ENV ANSIBLE_LOCAL_TEMP=/tmp/ansible
 
 RUN INSTALL_PKGS="apb python2-pip ansible" && \
     yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
@@ -20,8 +18,7 @@ RUN INSTALL_PKGS="apb python2-pip ansible" && \
       --disablerepo=* \
       --enablerepo=rhel-7-server-rpms --enablerepo=rhel-7-server-extras-rpms \
       --enablerepo=epel --enablerepo=rhel-7-server-ose-3.11-rpms \
-      $INSTALL_PKGS \
-      https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-${ANSIBLE_VERSION}-${ANSIBLE_REVISION}.el7.ans.noarch.rpm && \
+      $INSTALL_PKGS && \
     rpm -V ansible && \
     ansible --version && \
     apb version && \

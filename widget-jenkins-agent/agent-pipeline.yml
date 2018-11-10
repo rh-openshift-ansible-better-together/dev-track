@@ -30,7 +30,7 @@ objects:
         - name: "BUILDER_CONTEXT_DIR"
           value: "${BUILDER_CONTEXT_DIR}"
         - name: "SOURCE_REF"
-          value: "${BRANCH}"
+          value: "${SOURCE_REF}"
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory
@@ -40,7 +40,7 @@ parameters:
   value: widget-factory
 - name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
-- name: BRANCH
+- name: SOURCE_REF
   required: true
 - name: BUILDER_CONTEXT_DIR
   value: widget-jenkins-agent

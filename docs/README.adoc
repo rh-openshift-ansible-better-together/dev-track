@@ -185,12 +185,19 @@ tooling around our deployment playbook (explained in following sections).
 ```
 $ git checkout section-2
 $ cd $GIT_BASE/widget-jenkins-agent
-$ oc process -f agent-pipeline.yml -p BRANCH=section-2 | oc apply -f-
+$ oc process -f agent-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
 ```
 
 We are actually using pipelines to build our agent! It seems a little recursive but the idea of standardizing everything
 with automation makes things repeatable and that leads to confidence in frequent deployments (which is awesome). Go into
 the web console and watch your Jenkins instance come up, then we'll kick off a build of our `widget-jenkins-agent`.
+If you'd rather trigger a pipeline run from the CLI, you can run (once Jenkins is healthy):
+
+```
+$ oc start-build widget-jenkins-agent-pipeline
+```
+
+Your password to Jenkins will be same as your OpenShift password (`admin`:`redhat01`).
 
 === 2.3 Review Application
 

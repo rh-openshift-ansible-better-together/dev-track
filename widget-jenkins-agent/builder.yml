@@ -39,7 +39,7 @@ objects:
     source:
       contextDir: "${SOURCE_CONTEXT_DIR}"
       git:
-        ref: "${BRANCH}"
+        ref: "${SOURCE_REF}"
         uri: "${SOURCE_REPOSITORY_URL}"
       type: Git
     strategy:
@@ -60,7 +60,7 @@ parameters:
   value: widget-factory
 - name: SOURCE_REPOSITORY_URL
   value: https://github.com/srang/rh-openshift-ansible-broker-lab
-- name: BRANCH
+- name: SOURCE_REF
   required: true
 - name: SOURCE_CONTEXT_DIR
   value: widget-jenkins-agent

@@ -12,16 +12,12 @@ pipeline {
     stages {
         stage('configure build') {
             steps {
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject(NAMESPACE) {
-                            openshift.process(readFile("${env.BUILDER_CONTEXT_DIR}/builder.yml"))
-                        }
-                    }
-                }
                 dir(env.BUILDER_CONTEXT_DIR) {
                     sh """
-                        oc process -f builder.yml -p BRANCH=${env.SOURCE_REF} | oc apply -f-
+                        oc process -f builder.yml \
+                            --param=SOURCE_REF=${env.SOURCE_REF} \
+                            --param=SOURCE_REPOSITORY_URL=${env.APPLICATION_SOURCE_REPOSITORY_URL} \
+                            | oc apply -f-
                     """
                 }
             }

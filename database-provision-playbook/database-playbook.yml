@@ -15,7 +15,7 @@
 
   - name: ensure mysqld running
     service:
-      name: mysqld
+      name: mariadb
       state: started
 
   - name: widget user
@@ -41,7 +41,7 @@
   handlers:
   - name: restart mysql
     service:
-      name: mysqld
+      name: mariadb
       state: restarted
       enabled: yes
       sleep: 5

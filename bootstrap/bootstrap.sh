@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 
 ## Section 0
-sudo yum install -y git apb
+sudo yum install -y git apb rh-maven35
 git clone https://github.com/srang/rh-openshift-ansible-broker-lab.git
 echo export GIT_BASE="$(pwd)/rh-openshift-ansible-broker-lab" >> ~/.bashrc
 source ~/.bashrc
-cd $(GIT_BASE)/bootstrap
+cd ${GIT_BASE}/bootstrap
 
 ## Section 1
-cd $(GIT_BASE)
+cd ${GIT_BASE}
 git checkout section-1
-cd $(GIT_BASE)/database-provision-playbook
-ansible-playbook -vvv database-playbook.yml -i inventory/
+cd ${GIT_BASE}/database-provision-playbook
+ansible-playbook -vv database-playbook.yml -i inventory/
+cd ${GIT_BASE}/widget-factory
+sudo yum install -y rh-maven35 --enablerepo=rhel-server-rhscl-7-rpms
+scl enable rh-maven35 bash
+
 
 ## Section 2
-cd $(GIT_BASE)
+cd ${GIT_BASE}
 git checkout section-2
 oc login https://ec2-18-234-37-92.compute-1.amazonaws.com -u admin -p redhat01
 oc new-project widget-factory

@@ -29,7 +29,6 @@
       priv: '*.*:ALL,GRANT'
       state: present
       login_user: 'root'
-      login_password: 'root'
 
   - name: remove test database
     mysql_db:

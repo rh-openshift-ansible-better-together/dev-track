@@ -17,6 +17,8 @@
     service:
       name: mariadb
       state: started
+    become: yes
+    become_method: sudo
 
   - name: widget user
     mysql_user:
@@ -45,3 +47,5 @@
       state: restarted
       enabled: yes
       sleep: 5
+    become: yes
+    become_method: sudo

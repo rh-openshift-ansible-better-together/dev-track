@@ -21,7 +21,7 @@ pipeline {
                 }
                 dir(env.BUILDER_CONTEXT_DIR) {
                     sh """
-                        oc process -f builder.yml | oc apply -f-
+                        oc process -f builder.yml -p BRANCH=${env.SOURCE_REF} | oc apply -f-
                     """
                 }
             }

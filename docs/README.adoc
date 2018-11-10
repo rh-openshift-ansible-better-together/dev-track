@@ -185,7 +185,7 @@ tooling around our deployment playbook (explained in following sections).
 ```
 $ git checkout section-2
 $ cd $GIT_BASE/widget-jenkins-agent
-$ oc process -f agent-pipeline.yml -p section-2 | oc apply -f-
+$ oc process -f agent-pipeline.yml -p BRANCH=section-2 | oc apply -f-
 ```
 
 We are actually using pipelines to build our agent! It seems a little recursive but the idea of standardizing everything

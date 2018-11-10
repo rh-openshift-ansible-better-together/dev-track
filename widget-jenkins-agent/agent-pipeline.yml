@@ -18,7 +18,7 @@ objects:
       type: Git
       git:
         uri: ${APPLICATION_SOURCE_REPOSITORY_URL}
-        ref: ${BRANCH}
+        ref: ${SOURCE_REF}
       contextDir: ${BUILDER_CONTEXT_DIR}
     strategy:
       type: "JenkinsPipeline"

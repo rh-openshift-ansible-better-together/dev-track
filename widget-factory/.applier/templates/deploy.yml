@@ -45,7 +45,7 @@ objects:
           - name: SPRING_PROFILES_ACTIVE
             value: openshift
           - name: DB_SVC
-            value: mysql
+            value: ${APPLICATION_NAME}-db-svc
           - name: DB_NAME
             valueFrom:
               secretKeyRef:

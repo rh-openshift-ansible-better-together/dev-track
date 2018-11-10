@@ -139,7 +139,7 @@ we can verify in the database that everything persists correctly.
 
 ```
 $ curl localhost:8080/widgets
-$ curl -H 'Content-type: application/json' -d '{"label": "NEW01", "version": "V1", "description" "some new thing"}' \
+$ curl -H 'Content-type: application/json' -d '{"label": "NEW01", "version": "V1", "description": "some new thing"}' \
     localhost:8080/widgets
 $ curl localhost:8080/widgets
 ```
@@ -154,7 +154,7 @@ MariaDB [widgettest]> select * from widget;
 MariaDB [widgettest]> exit
 ```
 
-Now we should see a lot (relatively) more stuff in our database! So we can all stop and go home right? Wrong there is a
+Now we should see a lot more (relatively) stuff in our database! So we can all stop and go home right? Wrong there is a
 lot more we can do to add stability, flexibility and security to our stack.
 
 == 2 Deploy Application
@@ -164,17 +164,18 @@ scalability, and by defining a pipeline we standardize how the application is bu
 an OpenShift project. Make sure when logging in you are using the web console url for *your* lab:
 
 ```
-$ oc login https://ec2-18-234-37-92.compute-1.amazonaws.com -u admin -p redhat01 <- Ensure to use correct OpenShift cluster
+$ oc login --insecure-skip-tls-verify=true https://ec2-18-234-37-92.compute-1.amazonaws.com -u admin -p redhat01 <- Ensure to use correct OpenShift cluster
 $ oc new-project widget-factory
 ```
 
-=== 2.1 Auto-deploy Jenkins (Template Service Broker)
+=== 2.1 Auto-deploy Jenkins
 
 A sample pipeline has already been defined for you in `widget-factory/Jenkinsfile`. One of the nice things about
 OpenShift is how it integrates with Jenkins for CI/CD. By defining a pipeline build configuration, OpenShift will
 automatically deploy Jenkins -- more information on the mechanism behind this can be found in the
 https://docs.openshift.com/container-platform/3.10/install_config/configuring_pipeline_execution.html["Configuring pipeline execution"]
-docs.
+docs. Alternatively we could proactively deploy Jenkins using the Template Service Broker and the OpenShift Service
+Catalog (more on these in later sections).
 
 === 2.2 Configure `widget-jenkins-agent`
 
@@ -184,7 +185,7 @@ tooling around our deployment playbook (explained in following sections).
 ```
 $ git checkout section-2
 $ cd $GIT_BASE/widget-jenkins-agent
-$ oc process -f widget-pipeline.yml -p section-2 | oc apply -f-
+$ oc process -f agent-pipeline.yml -p section-2 | oc apply -f-
 ```
 
 We are actually using pipelines to build our agent! It seems a little recursive but the idea of standardizing everything
@@ -193,23 +194,49 @@ the web console and watch your Jenkins instance come up, then we'll kick off a b
 
 === 2.3 Review Application
 
-```
-$ oc secrets new generic mysql --from-generic=database-user=widget --from-generic=database-password=widget01 \
-    --from-generic=database-name=widget
-```
-https://docs.openshift.com/container-platform/3.10/dev_guide/integrating_external_services.html[exposing external services]
+Now let's finally take a look at that widget-factory service. It's a simple spring data service, one controller is setup
+as a `spring-data-rest` interface that autoconfigures CRUD operations on our `widget` object. There is a second
+controller that exposes a service interface tied to a widget repository interface allowing for building more custom
+queries. The important parts of the application (for the purpose of this lab) are how we are planning to automate
+building, deploying and connecting the application to our database (for now `widgettest` configured in section-1).
 
 === 2.4 Ansible-Applier
 
+Let's take a look inside the `.applier` folder, under `templates` you'll see a number of YAML files specifying an
+OpenShift template for various resources. As you may expect, `build.yml` specifies how to build and store the image,
+while `deploy.yml` specifies how to deploy the application. The `db-service.yml` contains configuration for how to
+connect to our database, exposing the external hostname of the server as an OpenShift internal service (more
+https://docs.openshift.com/container-platform/3.10/dev_guide/integrating_external_services.html[info]). It also creates
+the encoded secret `mysql` that our deployment uses.
+
+You will need to update the `Jenkinsfile` with your database hostname:
+
+```
+openshift.withCluster() {
+    env.NAMESPACE = openshift.project()
+    env.APPLICATION_NAME = "widget-factory"
+    env.APPLICATION_RELEASE = "0.0.1"
+    env.DATABASE_HOST = "ec2-18-234-37-92.compute-1.amazonaws.com" <- This line should match your database host
+    echo "Starting Pipeline for ${APPLICATION_NAME}..."
+}
+```
+
 === 2.5 Deploy Application
 
-== 3 Connect Application to MySQL
+With this in place we are ready to deploy our application. Let's create our application pipeline:
 
-=== 3.1 Review Legacy Solution
+```
+$ oc process -f widget-pipeline.yml -p section-2 | oc apply -f-
+$ oc start-build widget-factory-pipeline
+```
 
-=== 3.2 Automation Service Broker
+Now go into Jenkins to watch your build continue.
 
-=== 3.3 Build an APB
+== 3 Self-service MySQL DB Provisioning
+
+=== 3.1 Automation Service Broker
+
+=== 3.2 Build an APB
 
 ```
 $ git checkout section-3
@@ -228,6 +255,6 @@ $ oc start-build --follow --from-dir . database-provision-apb
 $ apb broker bootstrap
 ```
 
-=== 3.4 Provision Database and Credentials
+=== 3.3 Provision Database and Credentials
 
-=== 3.5 Update Application to Use Bindings
+=== 3.4 Update Application to Use Bindings

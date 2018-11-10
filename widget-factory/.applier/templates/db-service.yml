@@ -16,39 +16,30 @@ objects:
       group: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}-db-svc
     namespace: ${APPLICATION_NAMESPACE}
-- apiVersion: v1
-  kind: Route
-  metadata:
-    labels:
-      application: ${APPLICATION_NAME}
-      group: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${APPLICATION_NAMESPACE}
   spec:
-    port:
-      targetPort: 8080
-    to:
-      kind: Service
-      name: ${APPLICATION_NAME}
+    type: ExternalName
+    externalName: ${DATABASE_URL}
+  selector: {}
 - apiVersion: v1
-  kind: Service
+  data:
+    database-name: ${DATABASE_NAME_ENC}
+    database-password: ${DATABASE_USER_ENC}
+    database-user: ${DATABASE_PASS_ENC}
+  kind: Secret
   metadata:
-    labels:
-      application: ${APPLICATION_NAME}
-      group: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-  spec:
-    ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
-    selector:
-      application: ${APPLICATION_NAME}
-    type: ClusterIP
+    creationTimestamp: null
+    name: mysql
+  type: Opaque
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory
-- name: APPLICATION_RELEASE
-  required: true
 - name: APPLICATION_NAMESPACE
   value: widget-factory
+- name: DATABASE_URL
+  required: true
+- name: DATABASE_NAME_ENC
+  required: true
+- name: DATABASE_USER_ENC
+  required: true
+- name: DATABASE_PASS_ENC
+  required: true

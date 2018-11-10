@@ -8,6 +8,10 @@ db_service_params:
   DATABASE_USER_ENC: "{{ db_user | b64encode }}"
   DATABASE_PASS_ENC: "{{ db_pass | b64encode }}"
 
+application_build_params:
+  APPLICATION_SOURCE_REPOSITORY_URL: "{{ application_source_repository_url }}"
+  SOURCE_REF: "{{ source_ref }}"
+
 openshift_cluster_content:
 - object: deployment
   content:
@@ -25,5 +29,5 @@ openshift_cluster_content:
   content:
   - name: "widget-factory build"
     template: "{{ inventory_dir }}/../templates/build.yml"
-    params: "{{ inventory_dir }}/../params/empty"
+    params_from_vars: "{{ application_build_params }}"
     namespace: widget-factory

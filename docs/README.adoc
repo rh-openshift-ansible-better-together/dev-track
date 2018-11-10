@@ -197,9 +197,15 @@ If you'd rather trigger a pipeline run from the CLI, you can run (once Jenkins i
 $ oc start-build widget-jenkins-agent-pipeline
 ```
 
-Your password to Jenkins will be same as your OpenShift password (`admin`:`redhat01`).
+Your password to Jenkins will be same as your OpenShift password (`admin`:`redhat01`). After this image is built, it
+will show up as an available agent in the kubernetes-plugin configuration section in your Jenkins instance and can
+be used by specifying the label `widget-jenkins-agent`.
 
 === 2.3 Review Application
+
+```
+$ cd $GIT_BASE/widget-factory
+```
 
 Now let's finally take a look at that widget-factory service. It's a simple spring data service, one controller is setup
 as a `spring-data-rest` interface that autoconfigures CRUD operations on our `widget` object. There is a second
@@ -233,7 +239,7 @@ openshift.withCluster() {
 With this in place we are ready to deploy our application. Let's create our application pipeline:
 
 ```
-$ oc process -f widget-pipeline.yml -p section-2 | oc apply -f-
+$ oc process -f widget-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
 $ oc start-build widget-factory-pipeline
 ```
 

@@ -18,7 +18,7 @@ objects:
       type: Git
       git:
         uri: "${APPLICATION_SOURCE_REPOSITORY_URL}"
-        ref: "${APPLICATION_SOURCE_REPOSITORY_REF}"
+        ref: "${SOURCE_REF}"
       contextDir: "${APPLICATION_CONTEXT_DIR}"
     strategy:
       type: "JenkinsPipeline"
@@ -29,6 +29,8 @@ objects:
           value: "${APPLICATION_SOURCE_REPOSITORY_URL}"
         - name: "APPLICATION_CONTEXT_DIR"
           value: "${APPLICATION_CONTEXT_DIR}"
+        - name: "SOURCE_REF"
+          value: "${SOURCE_REF}"
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory
@@ -36,7 +38,7 @@ parameters:
   value: widget-factory
 - name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
-- name: APPLICATION_SOURCE_REPOSITORY_REF
+- name: SOURCE_REF
   value: master
 - name: APPLICATION_CONTEXT_DIR
   value: widget-factory

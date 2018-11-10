@@ -1,6 +1,9 @@
 [db-server]
 ec2-54-161-113-184.compute-1.amazonaws.com
 
+[master-server]
+ec2-18-234-37-92.compute-1.amazonaws.com
+
 [all:vars]
 ansible_user=student1
 ansible_ssh_pass=redhat01

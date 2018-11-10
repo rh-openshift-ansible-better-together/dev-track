@@ -4,20 +4,21 @@
 
 === 0.1 Usecase
 
-Today we are building a WIDGET inventory tracking system. It comprises of a simple
-data driven application backed by MySQL. We will be deploying the application on OpenShift
-and the database server on a RHEL virtual machine. 
+Today we are building a Widget inventory tracking system. It's comprised of a simple data driven application backed by
+MySQL. We will be deploying the application on OpenShift and configuring a database server on a separate RHEL virtual
+machine.
 
 === 0.2 Ansible and OpenShift
 
-The goal of this lab is to show how the [OpenShift Container Platform](https://docs.openshift.com/container-platform/latest/getting_started/index.html)
-and [Ansible Automation](https://www.ansible.com/resources/get-started) can build on
-each other to increase innovation and accelerate delivery.
+The goal of this lab is to show how the
+https://docs.openshift.com/container-platform/latest/getting_started/index.html[OpenShift Container Platform]
+and https://www.ansible.com/resources/get-started[Ansible Automation] can build on each other to increase innovation
+and accelerate delivery.
 
-First we'll introduce how Ansible can be used to automate provisioning and configuration
-of application dependencies. Then we'll look at how we can leverage Ansible for application
-configuration within OpenShift as part of a pipeline. Finally, we will dig into how the
-[OpenShift Ansible Broker](https://docs.openshift.com/container-platform/3.11/architecture/service_catalog/ansible_service_broker.html)
+First we'll introduce how Ansible can be used to automate provisioning and configuration of application dependencies.
+Then we'll look at how we can leverage Ansible for application configuration within OpenShift as part of a pipeline.
+Finally, we will dig into how the
+https://docs.openshift.com/container-platform/3.11/architecture/service_catalog/ansible_service_broker.html[OpenShift Ansible Broker]
 adds self-service automation to the platform.
 
 == 1 Install MySQL Server with Ansible Engine
@@ -34,7 +35,6 @@ $ ssh -o 'StrictHostKeyChecking no' student1@ec2-18-234-37-92.compute-1.amazonaw
 ```
 
 Alternatively you can skip the `StrictHostKeyChecking` option and just accept host key check prompt.
-
 Once on the Master Node, you'll need to set up shop. First we're gonna install `git` so we can pull down the lab source
 code.
 
@@ -100,44 +100,101 @@ Let's connect to the database and see what's there
 ```
 $ mysql --user=widget --password=widget01 widgettest
 ```
-
 We should see that our database is _completely_ empty. But we can fix that pretty easily. We're going to jump ahead a
-little bit and "deploy" our widget factory in our workspace and connect to the database there. In order to do that,
-we're also going to need to build and run our application:
+little bit and "deploy" our widget factory in our workspace and connect to the database there.
+
+=== 1.4 Run Canary Application
+
+In order to build and run our application, we're going to need some tools:
 
 ```
 $ cd $GIT_BASE/widget-factory
 $ sudo yum install -y rh-maven35 --enablerepo=rhel-server-rhscl-7-rpms
 $ scl enable rh-maven35 bash
-$ mvn clean install -Pdeploy
 ```
 
-That was a lot all at once but basically what we did was exactly what we said -- install the build tool for our app,
-then build the app.
+Now we can run the app, but we need to add the database connection information. Open the `application-canary.yaml` file
+in the `src/main/resources` folder, and update the jdbc url to have the correct host info:
 
-=== 1.4 Run Canary Application
+```
+spring:
+  jpa.hibernate.ddl-auto: create
+  datasource:
+    url: jdbc:mysql://ec2-18-234-37-92.compute-1.amazonaws.com:3306/widgettest <- this is the line
+```
+
+With that done we can build and run the application on our deployable canary profile:
+
+```
+$ mvn clean install -Pdeploy
+$ SPRING_PROFILES_ACTIVE=canary java -jar target/widget-factory.jar &
+```
+
+This will start the job in the background (so it will log to `stdout` but you can still type commands, it's easiest if
+wait for the boot logs to finish). Now lets try hitting the service a couple times to see what's been created, then
+we can verify in the database that everything persists correctly.
+
+```
+$ curl localhost:8080/widgets
+$ curl -H 'Content-type: application/json' -d '{"label": "NEW01", "version": "V1", "description" "some new thing"}' \
+    localhost:8080/widgets
+$ curl localhost:8080/widgets
+```
+
+Now we can stop the application and dive into the db:
+
+```
+$ kill %1
+$ mysql --user=widget --password=widget01 widgettest
+MariaDB [widgettest]> show tables;
+MariaDB [widgettest]> select * from widget;
+MariaDB [widgettest]> exit
+```
+
+Now we should see a lot (relatively) more stuff in our database! So we can all stop and go home right? Wrong there is a
+lot more we can do to add stability, flexibility and security to our stack.
 
 == 2 Deploy Application
 
-`$ oc new-project widget-factory`
+We've been running and testing things manually. Deploying to OpenShift adds stability around ensuring uptime and
+scalability, and by defining a pipeline we standardize how the application is built and deployed. To start, let's create
+an OpenShift project. Make sure when logging in you are using the web console url for *your* lab:
+
+```
+$ oc login https://ec2-18-234-37-92.compute-1.amazonaws.com -u admin -p redhat01 <- Ensure to use correct OpenShift cluster
+$ oc new-project widget-factory
+```
 
 === 2.1 Auto-deploy Jenkins (Template Service Broker)
 
-https://docs.openshift.com/container-platform/3.10/install_config/configuring_pipeline_execution.html
+A sample pipeline has already been defined for you in `widget-factory/Jenkinsfile`. One of the nice things about
+OpenShift is how it integrates with Jenkins for CI/CD. By defining a pipeline build configuration, OpenShift will
+automatically deploy Jenkins -- more information on the mechanism behind this can be found in the
+https://docs.openshift.com/container-platform/3.10/install_config/configuring_pipeline_execution.html["Configuring pipeline execution"]
+docs.
 
 === 2.2 Configure `widget-jenkins-agent`
 
+Before we can run our application pipeline we actually need to build a brand new Jenkins agent image. We need this for
+tooling around our deployment playbook (explained in following sections).
+
 ```
 $ git checkout section-2
-$ cd ../widget-jenkins-agent
+$ cd $GIT_BASE/widget-jenkins-agent
 $ oc process -f widget-pipeline.yml -p section-2 | oc apply -f-
 ```
+
+We are actually using pipelines to build our agent! It seems a little recursive but the idea of standardizing everything
+with automation makes things repeatable and that leads to confidence in frequent deployments (which is awesome). Go into
+the web console and watch your Jenkins instance come up, then we'll kick off a build of our `widget-jenkins-agent`.
 
 === 2.3 Review Application
 
 ```
-$ oc secrets new generic mysql --from-generic=username=dummy --from-generic=password=dummy
+$ oc secrets new generic mysql --from-generic=database-user=widget --from-generic=database-password=widget01 \
+    --from-generic=database-name=widget
 ```
+https://docs.openshift.com/container-platform/3.10/dev_guide/integrating_external_services.html[exposing external services]
 
 === 2.4 Ansible-Applier
 

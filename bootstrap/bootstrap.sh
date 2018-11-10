@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 
-## Section -1
+## Section 0
 sudo yum install -y git apb
 git clone https://github.com/srang/rh-openshift-ansible-broker-lab.git
-GIT_BASE="$(pwd)/rh-openshift-ansible-broker-lab"
-
-## Section 0
+echo export GIT_BASE="$(pwd)/rh-openshift-ansible-broker-lab" >> ~/.bashrc
+source ~/.bashrc
 cd $(GIT_BASE)/bootstrap
 
 ## Section 1
+cd $(GIT_BASE)
+git checkout section-1
 cd $(GIT_BASE)/database-provision-playbook
 ansible-playbook database-playbook.yml -i inventory/
 
 ## Section 2
+cd $(GIT_BASE)
+git checkout section-2
 oc login https://ec2-18-234-37-92.compute-1.amazonaws.com -u admin -p redhat01
 oc new-project widget-factory
 oc process -f bootstrap.yml | oc apply -f-

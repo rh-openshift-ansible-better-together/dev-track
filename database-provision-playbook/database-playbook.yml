@@ -1,6 +1,6 @@
 ---
 - name: install mysql
-  hosts: db-server
+  hosts: bastion-server
   tasks:
   - name: install mysql-server
     become: yes

@@ -1,0 +1,12 @@
+---
+name: 'Bootstrap environment'
+hosts: localhost
+tasks:
+- name: install git apb
+  yum:
+    name:
+    - git
+    - apb
+    state: present
+  become: yes
+  become_method: sudo

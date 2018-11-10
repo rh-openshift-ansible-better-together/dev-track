@@ -34,15 +34,9 @@
       name: 'widget'
       host: '*'
       password: 'widget01'
-      priv: '*.widget:ALL,GRANT'
+      priv: 'widget.*:ALL,GRANT'
       state: present
       login_user: 'root'
-
-  - name: remove test database
-    mysql_db:
-      name: 'test'
-      state: 'absent'
-
 
   handlers:
   - name: restart mysql

@@ -23,7 +23,7 @@
 
   - name: widget database
     mysql_db:
-      name: 'widget'
+      name: 'widgettest'
       state: 'present'
       collation: 'utf8_general_ci'
       encoding: 'utf8'
@@ -34,7 +34,7 @@
       name: 'widget'
       host: '*'
       password: 'widget01'
-      priv: 'widget.*:ALL,GRANT'
+      priv: 'widgettest.*:ALL,GRANT'
       state: present
       login_user: 'root'
 

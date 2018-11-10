@@ -65,7 +65,7 @@
 
     <profiles>
         <profile>
-            <id>local</id>
+            <id>debug</id>
             <dependencies>
                 <dependency>
                     <groupId>com.h2database</groupId>
@@ -74,7 +74,7 @@
             </dependencies>
         </profile>
         <profile>
-            <id>openshift</id>
+            <id>deploy</id>
             <dependencies>
                 <dependency>
                     <groupId>mysql</groupId>

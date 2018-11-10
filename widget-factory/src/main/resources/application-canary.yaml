@@ -2,5 +2,5 @@ spring:
   jpa.hibernate.ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/widget
-    password: widget
-    username: widget01
+    password: widget01
+    username: widget

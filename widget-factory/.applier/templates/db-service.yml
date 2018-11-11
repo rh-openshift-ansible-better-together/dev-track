@@ -23,8 +23,8 @@ objects:
 - apiVersion: v1
   data:
     database-name: ${DATABASE_NAME_ENC}
-    database-password: ${DATABASE_USER_ENC}
-    database-user: ${DATABASE_PASS_ENC}
+    database-password: ${DATABASE_PASS_ENC}
+    database-user: ${DATABASE_USER_ENC}
   kind: Secret
   metadata:
     creationTimestamp: null

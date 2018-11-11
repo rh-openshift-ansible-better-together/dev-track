@@ -243,26 +243,65 @@ $ oc process -f widget-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
 $ oc start-build widget-factory-pipeline
 ```
 
-Now go into Jenkins to watch your build continue.
+Now go into Jenkins to watch your build continue. When it has completed, you should see it deployed in the web-console
+with all the configuration necessary for it to connect to your `widgettest` database. But what happens if you need
+another database? Will you have someone ssh into the database box each and every time? Should you put the playbook
+in Ansible Tower? Will your ops team have to run it for you even though its a relatively low impact development change?
+Let's see if there is a better way to handle this.
 
 == 3 Self-service MySQL DB Provisioning
 
+We have automation in place for provisioning a database server and adding a database to it. Now if only there were a way
+to bring that automation into OpenShift for self-service consumption by the application teams... (hint: that's exactly
+what we're going to do).
+
 === 3.1 Automation Service Broker
 
+The https://docs.openshift.com/container-platform/3.10/architecture/service_catalog/ansible_service_broker.html[OpenShift Ansible Broker]
+(or http://automationbroker.io/[Automation Broker]) provides a way to deploy playbooks via the OpenShift service catalog.
+Playbooks are packaged as https://docs.openshift.com/container-platform/3.10/apb_devel/[Ansible Playbook Bundles] which
+are lightweight images containing parametrized playbooks. Let's try our hand at converting our
+`database-provisioning-playbook` to an APB.
+
 === 3.2 Build an APB
+
+First off, let's make sure we're on the right branch to work on this.
 
 ```
 $ git checkout section-3
 $ cd ../database-provision-apb
+```
 
-...
+A Jenkinsfile has been provided for you, but only for guidance. Unless you've forked the lab repository, you need to
+trigger a https://docs.openshift.com/container-platform/3.10/dev_guide/dev_tutorials/binary_builds.html[Binary Build] for
+OpenShift to pick up *your* code and not the upstream lab code. Additionally, we need the build to push to the
+`openshift` namespace in order for the Ansible Broker to see the new image. That is a different namespace and will
+require us to change up some permissions.
 
-$ oc new-build --binary=true --name database-provision-apb
+```
+$ oc create imagestream database-provision-apb -n openshift
 $ oc policy add-role-to-user system:image-builder system:serviceaccount:widget-factory:builder -n openshift
-$ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift" } } } }'
+$ oc new-build --binary=true --name database-provision-apb
+$ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift"}}}}'
+```
 
-...
+*ALTERNATIVELY*, if you are running out of time, a builder template has been provided that completes the same steps as
+above:
 
+```
+$ oc process -f provisioner-build.yml | oc apply -f-
+```
+
+This creates a binary build that pushes to a new imagestream in the openshift namespace and gives the builder account
+in our namespace permission to push to that imagestream.
+
+Next we are going to need another utility for interacting with the broker:
+
+```
+$ sudo yum install -y apb
+```
+
+```
 $ apb bundle prepare
 $ oc start-build --follow --from-dir . database-provision-apb
 $ apb broker bootstrap

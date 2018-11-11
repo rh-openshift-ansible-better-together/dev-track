@@ -301,6 +301,8 @@ Next we are going to need a couple more utilities for interacting with the broke
 $ sudo yum install -y apb --enablerepo=rhel-7-server-ose-3.11-rpms
 $ apb version
 $ sed -i 's/osb/ansible-service-broker/' ~/.apb/defaults.json
+$ oc apply -f broker-config.yml
+$ oc rollout latest dc/asb -n openshift-ansible-service-broker
 ```
 
 Now it's finally time to get our hands dirty. A skeleton APB is already created for you in this directory. The pieces to
@@ -313,14 +315,11 @@ $ apb bundle prepare
 $ oc start-build --follow --from-dir . database-provision-apb
 $ apb broker bootstrap
 $ apb broker catalog
-$ apb catalog relist
 ```
 
 Your APB should be listed when you run the `apb broker catalog` command. If it doesn't, make sure to check the logs of
-the broker (`oc logs --since=30s dc/asb -n openshift-ansible-service-broker`). The bootstrap command is also run on a
-timer configured in the brokers config which can be viewed/edited in the web-console of the broker namespace or by
-running `oc edit cm/broker-config -n openshift-ansible-service-broker` (it's much easier to do in the web console due to
-formatting).
+the broker (`oc logs --since=30s dc/asb -n openshift-ansible-service-broker`). If your APB is showing up in the `apb
+broker catalog` command but not the service catalog, you may need to run `apb catalog relist`.
 
 === 3.3 Provision Database and Credentials
 

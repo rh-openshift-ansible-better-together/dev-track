@@ -269,7 +269,7 @@ First off, let's make sure we're on the right branch to work on this.
 
 ```
 $ git checkout section-3
-$ cd ../database-provision-apb
+$ cd $GIT_BASE/database-provision-apb
 ```
 
 A Jenkinsfile has been provided for you, but only for guidance. Unless you've forked the lab repository, you need to
@@ -295,18 +295,41 @@ $ oc process -f provisioner-build.yml | oc apply -f-
 This creates a binary build that pushes to a new imagestream in the openshift namespace and gives the builder account
 in our namespace permission to push to that imagestream.
 
-Next we are going to need another utility for interacting with the broker:
+Next we are going to need a couple more utilities for interacting with the broker:
 
 ```
-$ sudo yum install -y apb
+$ sudo yum install -y apb --enablerepo=rhel-7-server-ose-3.11-rpms
+$ apb version
+$ sed -i 's/osb/ansible-service-broker/' ~/.apb/defaults.json
 ```
+
+Now it's finally time to get our hands dirty. A skeleton APB is already created for you in this directory. The pieces to
+note are the `apb.yml` which specifies required parameters, `Dockerfile` which specifies how to build the image, and the
+`playbooks` folder which is how OpenShift will invoke certain "actions" on the APB (these can probably stay as-is).
+Use the Jenkinsfile for guidance on how to invoke builds but the basic steps are:
 
 ```
 $ apb bundle prepare
 $ oc start-build --follow --from-dir . database-provision-apb
 $ apb broker bootstrap
+$ apb broker catalog
+$ apb catalog relist
 ```
+
+Your APB should be listed when you run the `apb broker catalog` command. If it doesn't, make sure to check the logs of
+the broker (`oc logs --since=30s dc/asb -n openshift-ansible-service-broker`). The bootstrap command is also run on a
+timer configured in the brokers config which can be viewed/edited in the web-console of the broker namespace or by
+running `oc edit cm/broker-config -n openshift-ansible-service-broker` (it's much easier to do in the web console due to
+formatting).
 
 === 3.3 Provision Database and Credentials
 
+Once your APB is being correctly listed in the `abp broker catalog` command, you're ready to call it from the service
+catalog. In the top right corner of the web-console there is an "Add to project" button that allows you to search the
+catalog for your APB. You may need to rerun the `apb catalog relist` command to have the catalog reindex.
+
 === 3.4 Update Application to Use Bindings
+
+As long as your APB creates a secret with the same name (`mysql`) there shouldn't be anything to do here except making
+sure that your application pipeline doesn't try to overwrite it (take a look at
+`widget-factory/.applier/templates/db-service.yml`).

@@ -1,17 +1,30 @@
 ---
-
 - name: Create user
   mysql_user: 
-    name: "{{ mysql_user }}" 
-    password: "{{ mysql_password }}" 
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_password }}"
     priv: "{{ mysql_privileges }}"
-    host: "{{ mysql_host }}" 
+    host: "{{ mysql_host }}"
     state: "{{ state }}"
+    login_user: 'root'
+    login_password: "{{ mysql_root_password | default(omit) }}"
+
+- name: "Update last operation"
+  asb_last_operation:
+    description: "30%: Done"
 
 - name: Create database
   mysql_db: 
     name: "{{ mysql_db }}" 
     state: "{{ state }}"
+    collation: 'utf8_general_ci'
+    encoding: 'utf8'
+    login_user: 'root'
+    login_password: "{{ mysql_root_password | default(omit) }}"
+
+- name: "Update last operation"
+  asb_last_operation:
+    description: "60%: Done"
 
 - name: encode bind credentials
   asb_encode_binding:

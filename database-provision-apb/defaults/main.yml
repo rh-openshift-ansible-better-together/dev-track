@@ -1,4 +1,6 @@
 ---
-#mysql_database: devel
-#mysql_user: devel
-#mysql_password: changeme
+mysql_database: widget
+mysql_user: widget
+mysql_password: widget01
+mysql_host: '%'
+mysql_privileges: '*.*:ALL,GRANT'

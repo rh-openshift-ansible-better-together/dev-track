@@ -1,9 +1,9 @@
 ---
-
 - name: restart mysql
-  service: 
-    name: mysqld 
+  service:
+    name: mariadb
     state: restarted
-    sleep: 5
     enabled: yes
-
+    sleep: 5
+  become: yes
+  become_method: sudo

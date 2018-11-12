@@ -4,7 +4,6 @@ openshift.withCluster() {
     env.NAMESPACE = openshift.project()
     env.APPLICATION_NAME = "widget-factory"
     env.APPLICATION_RELEASE = "0.0.1"
-    env.DATABASE_HOST = "ec2-18-234-37-92.compute-1.amazonaws.com"
     echo "Starting Pipeline for ${APPLICATION_NAME}..."
 }
 

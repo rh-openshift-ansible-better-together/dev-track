@@ -62,10 +62,10 @@ $ source ~/.bashrc
 $ cd $GIT_BASE
 ```
 
-Finally, we need to make sure we're looking at the right branch of the lab (we're in section 1) so run:
+Finally, we need to make sure we're looking at the right branch of the lab (we don't want to see the answers) so run:
 
 ```
-$ git checkout section-1
+$ git checkout master
 ```
 
 Go into the `database-provision-playbook` directory and look around. This is a good opportunity to install your favorite
@@ -105,6 +105,7 @@ $ ansible-playbook -vv database-playbook.yml -i inventory/
 Let's connect to the database and see what's there
 
 ```
+$ sudo yum install -y mariadb
 $ mysql --host=ec2-54-161-113-184.compute-1.amazonaws.com --port=3306 --user=widget --password=widget01 widgettest
 MariaDB [widgettest]> show tables;
 ```
@@ -145,8 +146,7 @@ we can verify in the database that everything persists correctly.
 
 ```
 $ curl localhost:8080/widgets
-$ curl -H 'Content-type: application/json' -d '{"label": "NEW01", "version": "V1", "description": "some new thing"}' \
-    localhost:8080/widgets
+$ curl -H 'Content-type: application/json' -d '{"label": "NEW01", "version": "V1", "description": "some new thing"}' localhost:8080/widgets
 $ curl localhost:8080/widgets
 ```
 
@@ -189,9 +189,8 @@ Before we can run our application pipeline we actually need to build a brand new
 tooling around our deployment playbook (explained in following sections).
 
 ```
-$ git checkout section-2
 $ cd $GIT_BASE/widget-jenkins-agent
-$ oc process -f agent-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
+$ oc process -f agent-pipeline.yml --param=SOURCE_REF=master | oc apply -f-
 ```
 
 We are actually using pipelines to build our agent! It seems a little recursive but the idea of standardizing everything
@@ -202,6 +201,9 @@ If you'd rather trigger a pipeline run from the CLI, you can run this command (o
 ```
 $ oc start-build widget-jenkins-agent-pipeline
 ```
+
+*Note* it may take a few minutes for Jenkins to finish its post deploy bootstrapping before running the build. Keep an
+eye on the Jenkins master pod logs for indication as to whether its completed this bootstrapping.
 
 Your password to Jenkins will be same as your OpenShift password (`admin`:`redhat01`). After this image is built, it
 will automatically show up as an available agent in the kubernetes-plugin configuration section in your Jenkins instance
@@ -219,7 +221,7 @@ It's a simple-spring data service, one controller is setup as a `spring-data-res
 operations on our `widget` object. There is a second controller that exposes a service interface tied to a widget
 repository interface allowing for building more custom queries. The important parts of the application (for the purpose
 of this lab) are how we are planning to automate building, deploying and connecting the application to our database (for
-now `widgettest` configured in section-1).
+now `widgettest` configured in Section 1).
 
 === 2.4 Ansible OpenShift Applier
 
@@ -234,18 +236,6 @@ This directory is used by an ansible role call the https://github.com/redhat-cop
 The role allows for template instantiation as an ansible-playbook which makes it easy to inject into a pipeline (which
 is what we've done).
 
-You will need to update the `Jenkinsfile` with your database hostname:
-
-```
-openshift.withCluster() {
-    env.NAMESPACE = openshift.project()
-    env.APPLICATION_NAME = "widget-factory"
-    env.APPLICATION_RELEASE = "0.0.1"
-    env.DATABASE_HOST = "ec2-18-234-37-92.compute-1.amazonaws.com" <- This line should match your database host
-    echo "Starting Pipeline for ${APPLICATION_NAME}..."
-}
-```
-
 If you look at the stages of the pipeline, you'll see mostly standard steps for building the jar, building the image,
 and deploying it to the cluster, but there are also some ansible commands in the "Apply OpenShift Manifests with Ansible"
 stage. These commands install the role from ansible galaxy and then apply the build, deploy and db configuration to our
@@ -253,18 +243,22 @@ namespace.
 
 === 2.5 Deploy Application
 
-We are now ready to deploy our application. Let's create our pipeline:
+We are now ready to deploy our application (make sure the widget-jenkins-agent image has successfully built first).
+Let's create our pipeline, you'll need to make sure to use the correct database hostname:
 
 ```
-$ oc process -f widget-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
+$ oc process -f widget-pipeline.yml --param=SOURCE_REF=master --param=DATABASE_HOST=ec2-54-89-60-203.compute-1.amazonaws.com | oc apply -f-
 $ oc start-build widget-factory-pipeline
 ```
 
 Now go into Jenkins to watch your build continue. When it has completed, you should see it deployed in the web-console
-with all the configuration necessary for it to connect to your `widgettest` database. But what happens if you need
-another database? Will you have someone ssh into the database box each and every time? Should you put the playbook
-in Ansible Tower? Will your ops team have to run it for you even though its a relatively low impact development change?
-Let's see if there is a better way to handle this.
+with all the configuration necessary for it to connect to your `widgettest` database. Try using the route in OpenShift
+to see the NEW widget we created in Section 1.
+
+It's pretty cool seeing all these pieces come together, but what happens if you need another database? Will you have
+someone ssh into the database box each and every time? Should you put the playbook in Ansible Tower? Will your ops team
+have to run it for you even though its a relatively low impact development change? Let's see if there is a better way to
+handle this.
 
 == 3 Self-service MySQL DB Provisioning
 
@@ -285,7 +279,6 @@ Bundles] which are lightweight images containing parametrized playbooks. Let's t
 First off, let's make sure we're on the right branch to work on this.
 
 ```
-$ git checkout section-3
 $ cd $GIT_BASE/database-provision-apb
 ```
 

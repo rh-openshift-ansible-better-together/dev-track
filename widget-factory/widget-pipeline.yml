@@ -31,6 +31,8 @@ objects:
           value: "${APPLICATION_CONTEXT_DIR}"
         - name: "SOURCE_REF"
           value: "${SOURCE_REF}"
+        - name: "DATABASE_HOST"
+          value: "${DATABASE_HOST}"
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory
@@ -40,6 +42,8 @@ parameters:
   value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
 - name: SOURCE_REF
   value: master
+- name: DATABASE_HOST
+  required: true
 - name: APPLICATION_CONTEXT_DIR
   value: widget-factory
 - name: PIPELINE_SCRIPT

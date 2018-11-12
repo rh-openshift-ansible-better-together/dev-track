@@ -1,10 +1,11 @@
 ---
 - name: Create user
+  hosts: "{{ mysql_host }}"
   mysql_user: 
     name: "{{ mysql_user }}"
     password: "{{ mysql_password }}"
     priv: "{{ mysql_privileges }}"
-    host: "{{ mysql_host }}"
+    host: "{{ mysql_host_access }}"
     state: "{{ state }}"
     login_user: 'root'
     login_password: "{{ mysql_root_password | default(omit) }}"
@@ -14,7 +15,8 @@
     description: "30%: Done"
 
 - name: Create database
-  mysql_db: 
+  hosts: "{{ mysql_host }}"
+  mysql_db:
     name: "{{ mysql_db }}" 
     state: "{{ state }}"
     collation: 'utf8_general_ci'

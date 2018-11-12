@@ -20,16 +20,6 @@ objects:
     type: ExternalName
     externalName: ${DATABASE_URL}
   selector: {}
-- apiVersion: v1
-  data:
-    database-name: ${DATABASE_NAME_ENC}
-    database-password: ${DATABASE_PASS_ENC}
-    database-user: ${DATABASE_USER_ENC}
-  kind: Secret
-  metadata:
-    creationTimestamp: null
-    name: mysql
-  type: Opaque
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory

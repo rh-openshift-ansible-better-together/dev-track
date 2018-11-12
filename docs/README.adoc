@@ -5,8 +5,9 @@
 === 0.1 Usecase
 
 Today we are building a Widget inventory tracking system. It's comprised of a simple data driven application backed by
-MySQL. We will be deploying the application on OpenShift and configuring a database server on a separate RHEL virtual
-machine.
+MySQL. We will start with how to deploy and configure the MySQL server via Ansible, follow that up with how to manage
+the application's OpenShift deployment with Ansible, and finally bring the database automation into the OpenShift
+Service Catalog.
 
 === 0.2 Ansible and OpenShift
 
@@ -18,20 +19,25 @@ and accelerate delivery.
 First we'll introduce how Ansible can be used to automate provisioning and configuration of application dependencies.
 Then we'll look at how we can leverage Ansible for application configuration within OpenShift as part of a pipeline.
 Finally, we will dig into how the
-https://docs.openshift.com/container-platform/3.11/architecture/service_catalog/ansible_service_broker.html[OpenShift Ansible Broker]
-adds self-service automation to the platform.
+https://docs.openshift.com/container-platform/3.11/architecture/service_catalog/ansible_service_broker.html[OpenShift
+Ansible Broker] adds self-service automation to the platform.
+
+The source code for this lab is on https://github.com/srang/rh-openshift-ansible-broker-lab[GitHub], but we will be
+doing most of our work in AWS so don't worry about cloning the repo yet. One other thing to note is that the source code
+will be available well after the lab (although not the lab environment itself) and will work mostly out of the box on
+the Container Development Kit (it's where the lab was developed) and I'll likely publish a minishift branch that works
+completely out of the box. Indicate interest in a minishift version of the lab by starring the repo and opening an
+issue in GitHub.
 
 == 1 Install MySQL Server with Ansible Engine
 
-=== 1.1 Introduction to Ansible
-
-=== 1.2 Review Playbook
+=== 1.1 Review Playbook
 
 First you'll need to connect to your lab. To do that you'll need to ssh using your student account to the Master Node
 for your student account. The command will look like this:
 
 ```
-$ ssh -o 'StrictHostKeyChecking no' student1@ec2-18-234-37-92.compute-1.amazonaws.com
+$ ssh -o 'StrictHostKeyChecking no' student1@ec2-18-234-37-92.compute-1.amazonaws.com <- your Master Node
 ```
 
 Alternatively you can skip the `StrictHostKeyChecking` option and just accept host key check prompt.
@@ -63,11 +69,11 @@ $ git checkout section-1
 ```
 
 Go into the `database-provision-playbook` directory and look around. This is a good opportunity to install your favorite
-terminal-based editor. Adventurous developers could also fork the lab repository, clone it locally (to your personal
-machine), edit code in an IDE, and update git remotes to pull from a fork but for the purpose of this lab we will assume
-we're working directly on the Master Node.
+terminal-based editor (mine is and will always be `vim`). Adventurous developers could also fork the lab repository,
+clone it locally (to your personal machine), edit code in an IDE, and update git remotes to pull from a fork but for the
+purpose of this lab we will assume we're working directly on the Master Node.
 
-=== 1.3 Provision MySQL server on VM
+=== 1.2 Provision MySQL server on VM
 
 Most of this playbook is pre-configured for you, take a look at `database-provision.yml`. It is installing MariaDB (an
 opensource fork of MySQL), configuring a database on the server, and adding a user for that database. Let's try running
@@ -99,14 +105,14 @@ $ ansible-playbook -vv database-playbook.yml -i inventory/
 Let's connect to the database and see what's there
 
 ```
-$ mysql --user=widget --password=widget01 widgettest
+$ mysql --host=ec2-54-161-113-184.compute-1.amazonaws.com --port=3306 --user=widget --password=widget01 widgettest
 MariaDB [widgettest]> show tables;
 ```
 
 We should see that our database is _completely_ empty. But we can fix that pretty easily. We're going to jump ahead a
 little bit and "deploy" our widget factory in our workspace and connect to the database there.
 
-=== 1.4 Run Canary Application
+=== 1.3 Run Canary Application
 
 In order to build and run our application, we're going to need some tools:
 
@@ -148,20 +154,20 @@ Now we can stop the application and dive into the db:
 
 ```
 $ kill %1
-$ mysql --user=widget --password=widget01 widgettest
+$ mysql --host=ec2-54-161-113-184.compute-1.amazonaws.com --port=3306 --user=widget --password=widget01 widgettest
 MariaDB [widgettest]> show tables;
 MariaDB [widgettest]> select * from widget;
 MariaDB [widgettest]> exit
 ```
 
-Now we should see a lot more (relatively) stuff in our database! So we can all stop and go home right? Wrong there is a
+Now we should see a lot more (relatively) stuff in our database! So we can all stop and go home right? Wrong, there is a
 lot more we can do to add stability, flexibility and security to our stack.
 
 == 2 Deploy Application
 
-We've been running and testing things manually. Deploying to OpenShift adds stability around ensuring uptime and
-scalability, and by defining a pipeline we standardize how the application is built and deployed. To start, let's create
-an OpenShift project. Make sure when logging in you are using the web console url for *your* lab:
+We've been running and testing things manually. Deploying to OpenShift adds stability, ensuring uptime and
+scalability, and by defining a CI/CD pipeline, we standardize how the application is built and deployed. To start, let's
+create an OpenShift project. Make sure when logging in you are using the web console url for *your* lab:
 
 ```
 $ oc login --insecure-skip-tls-verify=true https://ec2-18-234-37-92.compute-1.amazonaws.com -u admin -p redhat01 <- Ensure to use correct OpenShift cluster
@@ -173,9 +179,9 @@ $ oc new-project widget-factory
 A sample pipeline has already been defined for you in `widget-factory/Jenkinsfile`. One of the nice things about
 OpenShift is how it integrates with Jenkins for CI/CD. By defining a pipeline build configuration, OpenShift will
 automatically deploy Jenkins -- more information on the mechanism behind this can be found in the
-https://docs.openshift.com/container-platform/3.10/install_config/configuring_pipeline_execution.html["Configuring pipeline execution"]
-docs. Alternatively we could proactively deploy Jenkins using the Template Service Broker and the OpenShift Service
-Catalog (more on these in later sections).
+https://docs.openshift.com/container-platform/3.10/install_config/configuring_pipeline_execution.html["Configuring
+pipeline execution"] docs. Alternatively we could proactively deploy Jenkins using the Template Service Broker and the
+OpenShift Service Catalog (more on these in later sections).
 
 === 2.2 Configure `widget-jenkins-agent`
 
@@ -191,29 +197,31 @@ $ oc process -f agent-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
 We are actually using pipelines to build our agent! It seems a little recursive but the idea of standardizing everything
 with automation makes things repeatable and that leads to confidence in frequent deployments (which is awesome). Go into
 the web console and watch your Jenkins instance come up, then we'll kick off a build of our `widget-jenkins-agent`.
-If you'd rather trigger a pipeline run from the CLI, you can run (once Jenkins is healthy):
+If you'd rather trigger a pipeline run from the CLI, you can run this command (once Jenkins is healthy):
 
 ```
 $ oc start-build widget-jenkins-agent-pipeline
 ```
 
 Your password to Jenkins will be same as your OpenShift password (`admin`:`redhat01`). After this image is built, it
-will show up as an available agent in the kubernetes-plugin configuration section in your Jenkins instance and can
-be used by specifying the label `widget-jenkins-agent`.
+will automatically show up as an available agent in the kubernetes-plugin configuration section in your Jenkins instance
+and can be used by specifying the label `widget-jenkins-agent`.
 
 === 2.3 Review Application
+
+Now let's finally take a look at that widget-factory service:
 
 ```
 $ cd $GIT_BASE/widget-factory
 ```
 
-Now let's finally take a look at that widget-factory service. It's a simple spring data service, one controller is setup
-as a `spring-data-rest` interface that autoconfigures CRUD operations on our `widget` object. There is a second
-controller that exposes a service interface tied to a widget repository interface allowing for building more custom
-queries. The important parts of the application (for the purpose of this lab) are how we are planning to automate
-building, deploying and connecting the application to our database (for now `widgettest` configured in section-1).
+It's a simple-spring data service, one controller is setup as a `spring-data-rest` interface that autoconfigures CRUD
+operations on our `widget` object. There is a second controller that exposes a service interface tied to a widget
+repository interface allowing for building more custom queries. The important parts of the application (for the purpose
+of this lab) are how we are planning to automate building, deploying and connecting the application to our database (for
+now `widgettest` configured in section-1).
 
-=== 2.4 Ansible-Applier
+=== 2.4 Ansible OpenShift Applier
 
 Let's take a look inside the `.applier` folder, under `templates` you'll see a number of YAML files specifying an
 OpenShift template for various resources. As you may expect, `build.yml` specifies how to build and store the image,
@@ -221,6 +229,10 @@ while `deploy.yml` specifies how to deploy the application. The `db-service.yml`
 connect to our database, exposing the external hostname of the server as an OpenShift internal service (more
 https://docs.openshift.com/container-platform/3.10/dev_guide/integrating_external_services.html[info]). It also creates
 the encoded secret `mysql` that our deployment uses.
+
+This directory is used by an ansible role call the https://github.com/redhat-cop/openshift-applier[`openshift-applier`].
+The role allows for template instantiation as an ansible-playbook which makes it easy to inject into a pipeline (which
+is what we've done).
 
 You will need to update the `Jenkinsfile` with your database hostname:
 
@@ -234,9 +246,14 @@ openshift.withCluster() {
 }
 ```
 
+If you look at the stages of the pipeline, you'll see mostly standard steps for building the jar, building the image,
+and deploying it to the cluster, but there are also some ansible commands in the "Apply OpenShift Manifests with Ansible"
+stage. These commands install the role from ansible galaxy and then apply the build, deploy and db configuration to our
+namespace.
+
 === 2.5 Deploy Application
 
-With this in place we are ready to deploy our application. Let's create our application pipeline:
+We are now ready to deploy our application. Let's create our pipeline:
 
 ```
 $ oc process -f widget-pipeline.yml --param=SOURCE_REF=section-2 | oc apply -f-
@@ -251,16 +268,16 @@ Let's see if there is a better way to handle this.
 
 == 3 Self-service MySQL DB Provisioning
 
-We have automation in place for provisioning a database server and adding a database to it. Now if only there were a way
-to bring that automation into OpenShift for self-service consumption by the application teams... (hint: that's exactly
-what we're going to do).
+We have automation in place for provisioning a database server and adding a database to it, but we've been running it
+manually. Now if only there were a way to bring that automation into the OpenShift Service Catalog for self-service
+consumption by the application teams... (hint: that's exactly what we're going to do).
 
 === 3.1 Automation Service Broker
 
-The https://docs.openshift.com/container-platform/3.10/architecture/service_catalog/ansible_service_broker.html[OpenShift Ansible Broker]
-(or http://automationbroker.io/[Automation Broker]) provides a way to deploy playbooks via the OpenShift service catalog.
-Playbooks are packaged as https://docs.openshift.com/container-platform/3.10/apb_devel/[Ansible Playbook Bundles] which
-are lightweight images containing parametrized playbooks. Let's try our hand at converting our
+The https://docs.openshift.com/container-platform/3.10/architecture/service_catalog/ansible_service_broker.html[OpenShift
+Ansible Broker] (or http://automationbroker.io/[Automation Broker]) provides a way to deploy playbooks via the OpenShift
+Service Catalog. Playbooks are packaged as https://docs.openshift.com/container-platform/3.10/apb_devel/[Ansible Playbook
+Bundles] which are lightweight images containing parametrized playbooks. Let's try our hand at converting our
 `database-provisioning-playbook` to an APB.
 
 === 3.2 Build an APB
@@ -306,8 +323,8 @@ $ oc rollout latest dc/asb -n openshift-ansible-service-broker
 ```
 
 Now it's finally time to get our hands dirty. A skeleton APB is already created for you in this directory. The pieces to
-note are the `apb.yml` which specifies required parameters, `Dockerfile` which specifies how to build the image, and the
-`playbooks` folder which is how OpenShift will invoke certain "actions" on the APB (these can probably stay as-is).
+note are the `apb.yml` which specifies required parameters, the `Dockerfile` which specifies how to build the image, and
+the `playbooks` folder which is how OpenShift will invoke certain "actions" on the APB (these can probably stay as-is).
 Use the Jenkinsfile for guidance on how to invoke builds but the basic steps are:
 
 ```

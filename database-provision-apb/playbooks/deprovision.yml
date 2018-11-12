@@ -6,6 +6,7 @@
   connection: local
   vars:
     apb_action: deprovision
+    state: 'absent'
   roles:
   - role: database-provision
     

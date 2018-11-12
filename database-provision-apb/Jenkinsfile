@@ -30,10 +30,9 @@ pipeline {
                     }
                 }
                 sh """
-                    apb bundle list -v
-                    apb broker catalog -v
                     apb broker bootstrap -v
                     apb broker catalog -v
+                    apb catalog relist -v
                 """
             }
         }

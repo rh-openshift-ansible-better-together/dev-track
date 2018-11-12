@@ -306,7 +306,7 @@ $ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace":
 above:
 
 ```
-$ oc process -f provisioner-build.yml | oc apply -f-
+$ oc process -f provisioner-bootstrap.yml | oc apply -f-
 ```
 
 This creates a binary build that pushes to a new imagestream in the openshift namespace and gives the builder account

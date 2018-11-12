@@ -9,6 +9,26 @@ metadata:
       same project/namespace"
 objects:
 - apiVersion: v1
+  kind: RoleBinding
+  metadata:
+    name: system:image-builder
+  roleRef:
+    name: system:image-builder
+  subjects:
+  - kind: ServiceAccount
+    name: builder
+    namespace: ${APPLICATION_NAMESPACE}
+  userNames:
+  - "system:serviceaccount:${APPLICATION_NAMESPACE}:builder"
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+      group: ${APPLICATION_GROUP}
+    name: ${APPLICATION_NAME}
+    namespace: "openshift"
+- apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:

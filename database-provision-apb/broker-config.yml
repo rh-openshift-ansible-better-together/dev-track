@@ -27,7 +27,7 @@ data:
       sandbox_role: edit
       image_pull_policy: Always
       keep_namespace: false
-      keep_namespace_on_error: true
+      keep_namespace_on_error: false
     broker:
       dev_broker: false
       bootstrap_on_startup: true

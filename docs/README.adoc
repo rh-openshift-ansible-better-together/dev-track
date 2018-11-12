@@ -25,7 +25,7 @@ Ansible Broker] adds self-service automation to the platform.
 The source code for this lab is on https://github.com/srang/rh-openshift-ansible-broker-lab[GitHub], but we will be
 doing most of our work in AWS so don't worry about cloning the repo yet. One other thing to note is that the source code
 will be available well after the lab (although not the lab environment itself) and will work mostly out of the box on
-the Container Development Kit (it's where the lab was developed) and I'll likely publish a minishift branch that works
+the Container Development Kit (it's where the lab was developed) and I'll likely publish a `minishift` branch that works
 completely out of the box. Indicate interest in a minishift version of the lab by starring the repo and opening an
 issue in GitHub.
 
@@ -276,7 +276,7 @@ Bundles] which are lightweight images containing parametrized playbooks. Let's t
 
 === 3.2 Build an APB
 
-First off, let's make sure we're on the right branch to work on this.
+First off, let's make sure we're in the right place to work on this.
 
 ```
 $ cd $GIT_BASE/database-provision-apb

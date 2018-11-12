@@ -27,9 +27,3 @@ parameters:
   value: widget-factory
 - name: DATABASE_URL
   required: true
-- name: DATABASE_NAME_ENC
-  required: true
-- name: DATABASE_USER_ENC
-  required: true
-- name: DATABASE_PASS_ENC
-  required: true

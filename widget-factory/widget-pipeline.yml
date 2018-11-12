@@ -41,7 +41,7 @@ parameters:
 - name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
 - name: SOURCE_REF
-  value: master
+  value: my-apb
 - name: DATABASE_HOST
   required: true
 - name: APPLICATION_CONTEXT_DIR

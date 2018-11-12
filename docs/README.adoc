@@ -280,6 +280,7 @@ Bundles] which are lightweight images containing parametrized playbooks. Let's t
 First off, let's make sure we're in the right place to work on this.
 
 ```
+$ git checkout my-apb
 $ cd $GIT_BASE/database-provision-apb
 ```
 
@@ -292,15 +293,8 @@ require us to change up some permissions.
 ```
 $ oc create imagestream database-provision-apb -n openshift
 $ oc policy add-role-to-user system:image-builder system:serviceaccount:widget-factory:builder -n openshift
-$ oc new-build --binary=true --name database-provision-apb
+$ oc new-build --binary=true --name=database-provision-apb -n widget-factory
 $ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift"}}}}'
-```
-
-*ALTERNATIVELY*, if you are running out of time, a builder template has been provided that completes the same steps as
-above:
-
-```
-$ oc process -f provisioner-bootstrap.yml | oc apply -f-
 ```
 
 This creates a binary build that pushes to a new imagestream in the openshift namespace and gives the builder account
@@ -309,8 +303,8 @@ in our namespace permission to push to that imagestream.
 Next we are going to need a couple more utilities for interacting with the broker:
 
 ```
-$ sudo yum install -y apb --enablerepo=rhel-7-server-ose-3.11-rpms
-$ apb version
+$ sudo yum install -y apb --enablerepo=rhel-7-server-ose-3.11-rpms <- yes the 3.11 rpms (we want latest of apb)
+$ apb version <- you have to run this to generate default config (and make sure it is 1.9.7 or higher)
 $ sed -i 's/osb/ansible-service-broker/' ~/.apb/defaults.json
 $ oc apply -f broker-config.yml
 $ oc rollout latest dc/asb -n openshift-ansible-service-broker
@@ -319,6 +313,9 @@ $ oc rollout latest dc/asb -n openshift-ansible-service-broker
 Now it's finally time to get our hands dirty. A skeleton APB is already created for you in this directory. The pieces to
 note are the `apb.yml` which specifies required parameters, the `Dockerfile` which specifies how to build the image, and
 the `playbooks` folder which is how OpenShift will invoke certain "actions" on the APB (these can probably stay as-is).
+
+*Note*: This is where you get to write some code
+
 Use the Jenkinsfile for guidance on how to invoke builds but the basic steps are:
 
 ```
@@ -330,7 +327,8 @@ $ apb broker catalog
 
 Your APB should be listed when you run the `apb broker catalog` command. If it doesn't, make sure to check the logs of
 the broker (`oc logs --since=30s dc/asb -n openshift-ansible-service-broker`). If your APB is showing up in the `apb
-broker catalog` command but not the service catalog, you may need to run `apb catalog relist`.
+broker catalog` command but not the service catalog, you may need to run `apb catalog relist` (and maybe refresh the
+catalog page).
 
 === 3.3 Provision Database and Credentials
 

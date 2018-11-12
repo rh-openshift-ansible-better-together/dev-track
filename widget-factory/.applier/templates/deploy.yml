@@ -45,7 +45,7 @@ objects:
           - name: SPRING_PROFILES_ACTIVE
             value: openshift
           - name: DB_SVC
-            value: ${APPLICATION_NAME}-db-svc
+            value: ${APPLICATION_DB_SVC}
           - name: DB_NAME
             valueFrom:
               secretKeyRef:
@@ -94,6 +94,8 @@ objects:
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory
+- name: APPLICATION_DB_SVC
+  value: widget-factory-db-svc
 - name: APPLICATION_RELEASE
   required: true
 - name: APPLICATION_NAMESPACE

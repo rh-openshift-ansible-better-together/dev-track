@@ -253,7 +253,8 @@ $ oc start-build widget-factory-pipeline
 
 Now go into Jenkins to watch your build continue. When it has completed, you should see it deployed in the web-console
 with all the configuration necessary for it to connect to your `widgettest` database. Try using the route in OpenShift
-to see the NEW widget we created in Section 1.
+to recreate the NEW widget we created in Section 1 (it gets deleted when the application redeploys as part of the schema
+initialization).
 
 It's pretty cool seeing all these pieces come together, but what happens if you need another database? Will you have
 someone ssh into the database box each and every time? Should you put the playbook in Ansible Tower? Will your ops team

@@ -1,12 +1,12 @@
 ---
 - name: Create user
-  hosts: "{{ mysql_host }}"
-  mysql_user: 
+  mysql_user:
     name: "{{ mysql_user }}"
     password: "{{ mysql_password }}"
     priv: "{{ mysql_privileges }}"
     host: "{{ mysql_host_access }}"
     state: "{{ state }}"
+    login_host: "{{ mysql_host }}"
     login_user: 'root'
     login_password: "{{ mysql_root_password | default(omit) }}"
 
@@ -21,6 +21,7 @@
     state: "{{ state }}"
     collation: 'utf8_general_ci'
     encoding: 'utf8'
+    login_host: "{{ mysql_host }}"
     login_user: 'root'
     login_password: "{{ mysql_root_password | default(omit) }}"
 

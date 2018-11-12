@@ -3,5 +3,4 @@
   asb_last_operation:
     description: "0%: Starting"
 
-# - include_tasks: install-server.yml
 - include_tasks: configure-server.yml

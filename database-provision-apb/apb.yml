@@ -12,7 +12,7 @@ metadata:
   displayName: "Remote MySQL Database (APB)"
   console.openshift.io/iconClass: icon-mysql-database
   dependencies: []
-  documentationUrl: "https://github.com/srang/rh-openshift-ansible-broker-lab/tree/master/database-provision-apb"
+  documentationUrl: "https://github.com/srang/rh-openshift-ansible-broker-lab/tree/my-apb/database-provision-apb"
 plans:
   - name: default
     description: "A MySQL Database on existing MySQL server"

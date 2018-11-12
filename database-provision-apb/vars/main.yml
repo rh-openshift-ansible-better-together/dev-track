@@ -1,6 +1,6 @@
 ---
 
-state_map:
-  provision: present
-  deprovision: absent
-state: "{{ state_map[apb_action] }}"
+ansible_user: student1
+ansible_ssh_pass: redhat01
+host_key_checking: False
+ansible_connection: ssh

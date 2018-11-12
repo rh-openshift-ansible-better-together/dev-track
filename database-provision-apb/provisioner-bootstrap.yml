@@ -11,7 +11,8 @@ objects:
 - apiVersion: v1
   kind: RoleBinding
   metadata:
-    name: system:image-builder
+    name: system:image-builders
+    namespace: openshift
   roleRef:
     name: system:image-builder
   subjects:
@@ -20,14 +21,14 @@ objects:
     namespace: ${APPLICATION_NAMESPACE}
   userNames:
   - "system:serviceaccount:${APPLICATION_NAMESPACE}:builder"
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
       application: ${APPLICATION_NAME}
       group: ${APPLICATION_GROUP}
     name: ${APPLICATION_NAME}
-    namespace: "openshift"
+    namespace: openshift
 - apiVersion: v1
   kind: BuildConfig
   metadata:

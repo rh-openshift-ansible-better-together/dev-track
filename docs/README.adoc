@@ -75,7 +75,7 @@ purpose of this lab we will assume we're working directly on the Master Node.
 
 === 1.2 Provision MySQL server on VM
 
-Most of this playbook is pre-configured for you, take a look at `database-provision.yml`. It is installing MariaDB (an
+Most of this playbook is pre-configured for you, take a look at `database-playbook.yml`. It is installing MariaDB (an
 opensource fork of MySQL), configuring a database on the server, and adding a user for that database. Let's try running
 it!
 

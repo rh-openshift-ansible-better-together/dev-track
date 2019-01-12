@@ -26,7 +26,10 @@ data:
       host: ""
       ca_file: ""
       bearer_token_file: ""
+      # ocp 3.10
       namespace: openshift-ansible-service-broker
+      # minishift
+      # namespace: openshift-automation-service-broker
       sandbox_role: edit
       image_pull_policy: Always
       keep_namespace: false
@@ -47,6 +50,12 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    app: openshift-ansible-service-broker
+    # minishift
+    app: openshift-automation-service-broker
+    # ocp 3.10
+    # app: openshift-ansible-service-broker
   name: broker-config
-  namespace: openshift-ansible-service-broker
+  # minishift
+  namespace: openshift-automation-service-broker
+  # ocp 3.10
+  # namespace: openshift-ansible-service-broker

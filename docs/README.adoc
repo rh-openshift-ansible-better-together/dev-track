@@ -323,7 +323,7 @@ Use the Jenkinsfile for guidance on how to invoke builds but the basic steps are
 
 ```
 $ apb bundle prepare
-$ oc start-build --follow --from-dir . database-provision-apb
+$ oc start-build --follow --from-dir . database-provision-apb -n widget-factory
 $ apb broker bootstrap
 $ apb broker catalog
 ```

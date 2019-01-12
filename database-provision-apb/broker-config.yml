@@ -2,7 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    app: openshift-ansible-service-broker
+    # minishift
+    app: openshift-automation-service-broker
+    # ocp 3.10
+    # app: openshift-ansible-service-broker
   name: broker-config
   # minishift
   namespace: openshift-automation-service-broker
@@ -27,7 +30,7 @@ data:
       ca_file: ""
       bearer_token_file: ""
       # minishift
-      namespace: openshift-ansible-service-broker
+      namespace: openshift-automation-service-broker
       # ocp 3.10
       # namespace: openshift-ansible-service-broker
       sandbox_role: edit

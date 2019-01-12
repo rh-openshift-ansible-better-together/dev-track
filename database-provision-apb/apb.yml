@@ -41,6 +41,7 @@ plans:
       - name: mysql_root_password
         description: Root users password for provisioning database
         type: string
+        required: true
         display_type: password
       - name: mysql_host
         type: string

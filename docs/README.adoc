@@ -29,6 +29,8 @@ the Container Development Kit (it's where the lab was developed) and I'll likely
 completely out of the box. Indicate interest in a minishift version of the lab by starring the repo and opening an
 issue in GitHub.
 
+*NOTE*: this demo was built for OpenShift 3.10. When 4.0 releases, a new version of this lab will likely need to be released
+
 == 1 Install MySQL Server with Ansible Engine
 
 === 1.1 Review Playbook
@@ -75,7 +77,7 @@ purpose of this lab we will assume we're working directly on the Master Node.
 
 === 1.2 Provision MySQL server on VM
 
-Most of this playbook is pre-configured for you, take a look at `database-provision.yml`. It is installing MariaDB (an
+Most of this playbook is pre-configured for you, take a look at `database-playbook.yml`. It is installing MariaDB (an
 opensource fork of MySQL), configuring a database on the server, and adding a user for that database. Let's try running
 it!
 
@@ -294,7 +296,7 @@ require us to change up some permissions.
 $ oc create imagestream database-provision-apb -n openshift
 $ oc policy add-role-to-user system:image-builder system:serviceaccount:widget-factory:builder -n openshift
 $ oc new-build --binary=true --name=database-provision-apb -n widget-factory
-$ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift"}}}}'
+$ oc patch bc/database-provision-apb -p '{"spec": {"output":{"to": {"namespace": "openshift"}}}}' -n widget-factory
 ```
 
 This creates a binary build that pushes to a new imagestream in the openshift namespace and gives the builder account
@@ -306,6 +308,7 @@ Next we are going to need a couple more utilities for interacting with the broke
 $ sudo yum install -y apb --enablerepo=rhel-7-server-ose-3.11-rpms <- yes the 3.11 rpms (we want latest of apb)
 $ apb version <- you have to run this to generate default config (and make sure it is 1.9.7 or higher)
 $ sed -i 's/osb/ansible-service-broker/' ~/.apb/defaults.json
+$ sed -i 's/openshift-automation-service-broker/openshift-ansible-service-broker/' ~/.apb/defaults # for ocp 3.10 vs minishift
 $ oc apply -f broker-config.yml
 $ oc rollout latest dc/asb -n openshift-ansible-service-broker
 ```

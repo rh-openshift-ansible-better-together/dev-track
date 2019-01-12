@@ -4,6 +4,9 @@ application_release_params:
 
 db_service_params:
   DATABASE_URL: "{{ db_url }}"
+  DATABASE_NAME_ENC: "{{ db_name | b64encode }}"
+  DATABASE_USER_ENC: "{{ db_user | b64encode }}"
+  DATABASE_PASS_ENC: "{{ db_pass | b64encode }}"
 
 application_build_params:
   APPLICATION_SOURCE_REPOSITORY_URL: "{{ application_source_repository_url }}"

@@ -2,3 +2,5 @@
 - name: "Update last operation"
   asb_last_operation:
     description: "0%: Starting"
+
+- include_tasks: configure-server.yml

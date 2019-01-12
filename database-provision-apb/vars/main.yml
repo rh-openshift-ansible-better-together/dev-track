@@ -1,6 +1,2 @@
 ---
-
-state_map:
-  provision: present
-  deprovision: absent
-state: "{{ state_map[apb_action] }}"
+ansible_connection: local

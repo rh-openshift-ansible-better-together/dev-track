@@ -8,5 +8,6 @@
     apb_action: deprovision
     state: 'absent'
   roles:
-  - role: database-provision
+  - role: ansibleplaybookbundle.asb-modules
+  - role: database-provision-apb
     

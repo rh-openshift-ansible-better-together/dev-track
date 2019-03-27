@@ -1,6 +1,6 @@
 spring:
   jpa.hibernate.ddl-auto: create
   datasource:
-    url: jdbc:mysql://ec2-54-161-113-184.compute-1.amazonaws.com:3306/widgettest
-    password: widget01
-    username: widget
+    url: jdbc:mysql://127.0.0.1:3306/widgetfactory
+    password: admin123
+    username: admin

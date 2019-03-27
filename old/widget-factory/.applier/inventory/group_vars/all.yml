@@ -1,7 +1,6 @@
 ---
 application_release_params:
   APPLICATION_RELEASE: "{{ application_release }}"
-  REGISTRY_URL: "{{ registry_url }}"
 
 db_service_params:
   DATABASE_URL: "{{ db_url }}"

@@ -1,0 +1,4 @@
+apiVersion: lab.redhat.com/v1
+kind: Mysql
+metadata:
+  name: mysql

@@ -33,15 +33,13 @@ objects:
           value: "${SOURCE_REF}"
         - name: "DATABASE_HOST"
           value: "${DATABASE_HOST}"
-        - name: "REGISTRY_URL"
-          value: "${REGISTRY_URL}"
 parameters:
 - name: APPLICATION_NAME
   value: widget-factory
 - name: APPLICATION_NAMESPACE
   value: widget-factory
 - name: APPLICATION_SOURCE_REPOSITORY_URL
-  value: https://github.com/rh-openshift-ansible-better-together/dev-track.git
+  value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
 - name: SOURCE_REF
   value: master
 - name: DATABASE_HOST
@@ -50,5 +48,3 @@ parameters:
   value: widget-factory
 - name: PIPELINE_SCRIPT
   value: Jenkinsfile
-- name: REGISTRY_URL
-  value: docker-registry.default.svc

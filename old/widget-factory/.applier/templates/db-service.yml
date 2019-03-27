@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: widget-factory-deploy-template
+metadata:
+  annotations:
+    description: Template for deploying widget-factory
+    tags: demo,java
+  name: widget-factory-deploy-template
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}-db
+      group: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}-db-svc
+    namespace: ${APPLICATION_NAMESPACE}
+  spec:
+    type: ExternalName
+    externalName: ${DATABASE_URL}
+  selector: {}
+- apiVersion: v1
+  data:
+    database-name: ${DATABASE_NAME_ENC}
+    database-password: ${DATABASE_PASS_ENC}
+    database-user: ${DATABASE_USER_ENC}
+  kind: Secret
+  metadata:
+    creationTimestamp: null
+    name: mysql
+  type: Opaque
+parameters:
+- name: APPLICATION_NAME
+  value: widget-factory
+- name: APPLICATION_NAMESPACE
+  value: widget-factory
+- name: DATABASE_URL
+  required: true
+- name: DATABASE_NAME_ENC
+  required: true
+- name: DATABASE_USER_ENC
+  required: true
+- name: DATABASE_PASS_ENC
+  required: true

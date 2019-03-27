@@ -1,0 +1,4 @@
+- version: v1
+  group: lab.redhat.com
+  kind: Mysql
+  role: /opt/ansible/roles/mysql

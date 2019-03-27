@@ -1,0 +1,9 @@
+- name: "Set mysql objects state={{ state }}"
+  k8s:
+    state: "{{ state }}"
+    definition: "{{ lookup('template', item.name) | from_yaml }}"
+  loop:
+    - name: secret.yml.j2
+    - name: service.yml.j2
+    - name: pvc.yml.j2
+    - name: deploymentconfig.yml.j2

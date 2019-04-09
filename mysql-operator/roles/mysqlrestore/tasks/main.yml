@@ -1,0 +1,6 @@
+- name: "Set mysqlrestore objects state={{ state }}"
+  k8s:
+    state: "{{ state }}"
+    definition: "{{ lookup('template', item.name) | from_yaml }}"
+  loop:
+    - name: job.yml.j2

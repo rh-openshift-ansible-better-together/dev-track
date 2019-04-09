@@ -51,6 +51,8 @@ rules:
   - mysqls/status
   - mysqlbackups
   - mysqlbackups/status
+  - mysqlrestores
+  - mysqlrestores/status
   verbs:
   - create
   - delete

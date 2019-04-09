@@ -1,0 +1,7 @@
+apiVersion: lab.redhat.com/v1
+kind: MysqlRestore
+metadata:
+  name: mysqlrestore
+spec:
+  image: "172.30.1.1:5000/openshift/mysql"
+  mysql_backup_pvc: mysqlbackup

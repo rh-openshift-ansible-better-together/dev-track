@@ -1,7 +1,6 @@
 # Discovered from CustomResource metadata
 name: "{{ meta.name | default('mysql') }}"
 namespace: "{{ meta.namespace | default('mysql') }}"
-image: docker-registry.default.svc:5000/openshift/mysql
 
 # present - install
 # absent - uninstall
@@ -13,7 +12,7 @@ mysql_root_password: admin123
 mysql_user: admin
 
 # Database capacity
-volume_capacity: 2Gi
+volume_capacity: 1Gi
 
 memory_limit: 512Mi
 

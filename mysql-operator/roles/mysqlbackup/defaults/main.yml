@@ -1,0 +1,15 @@
+# Discovered from CustomResource metadata
+name: "{{ meta.name | default('mysqlbackup') }}"
+namespace: "{{ meta.namespace | default('mysql') }}"
+image: docker-registry.default.svc:5000/openshift/mysql
+
+# present - install
+# absent - uninstall
+state: present
+
+volume_capacity: 1Gi
+
+mysql_version: latest
+
+# Openshift service of the mysql deployment
+mysql_service: mysql

@@ -1,0 +1,7 @@
+- name: "Set mysqlbackup objects state={{ state }}"
+  k8s:
+    state: "{{ state }}"
+    definition: "{{ lookup('template', item.name) | from_yaml }}"
+  loop:
+    - name: pvc.yml.j2
+    - name: job.yml.j2

@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ name }}
+  namespace: {{ namespace }}
+  labels:
+    app: {{ name }}
+spec:
+  activeDeadlineSeconds: 18000
+  backoffLimit: 6
+  template:
+    metadata:
+      name: {{ name }}
+    spec:
+      containers:
+      - name: backup
+        image: {{ image }}:{{ mysql_version }}
+        env:
+        - name: ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-root-password
+              name: {{ mysql_service }}
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: database-name
+              name: {{ mysql_service }}
+        command: ["/bin/bash", "-c"]
+        args: ["mysqldump --host {{ mysql_service }} -uroot -p$ROOT_PASSWORD --single-transaction $DATABASE_NAME > /var/backup/backup.sql"]
+        volumeMounts:
+        - mountPath: /var/backup
+          name: backup
+      restartPolicy: Never
+      volumes:
+      - name: backup
+        persistentVolumeClaim:
+          claimName: {{ name }}

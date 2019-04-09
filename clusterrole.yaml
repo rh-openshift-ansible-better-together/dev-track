@@ -10,6 +10,8 @@ rules:
   resources:
   - mysqls
   - mysqls/status
+  - mysqlbackups
+  - mysqlbackups/status
   verbs:
   - create
   - delete

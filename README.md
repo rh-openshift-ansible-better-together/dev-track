@@ -1,4 +1,15 @@
-# Notes
-- We need a cluster-admin to create `clusterrole.yaml` before starting the lab to give project admins the ability to create the `mysql` role and custom resource. It can also be done as part of cluster provisioning.
-- We need a cluster admin to create the mysql crd before starting the lab
-- For minishift development, we need to change set the REGISTRY_URL as part of applying the bc pipeline
+# OpenShift-Ansible Integration Lab
+
+## Admin Tasks
+An admin needs to do the following things either during provisioning or before the lab starts:
+- Ensure each person has their own project
+- Ensure each person has project admin access
+- Apply the `clusterrole.yaml` file to aggregate CRD permissions to the admin cluster role
+- Apply the 3 CRDs: `mysql-operator/deploy/crds/*/*_crd.yaml`
+
+### TODOs Remaining:
+- Have participants build parts of the operator instead of simply applying it
+- We need more Ansible involved in the operator (rather than simply just apply resources)
+- Improve backup/restore process
+- Need to provision lab on RHPDS and validate lab works there
+- HA mysql?

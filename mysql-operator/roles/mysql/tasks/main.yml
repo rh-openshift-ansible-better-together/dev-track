@@ -1,6 +1,22 @@
-- name: "Set mysql objects state={{ state }}"
+- name: Generate root user password if not set
+  set_fact:
+    mysql_root_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits') }}"
+  when: mysql_root_password is not defined
+
+- name: Add root password to the Mysql CR
   k8s:
-    state: "{{ state }}"
+    state: present
+    definition:
+      spec:
+        mysql_root_password: "{{ mysql_root_password }}"
+    api_version: lab.redhat.com/v1
+    kind: Mysql
+    name: "{{ name }}"
+    namespace: "{{ namespace }}"
+
+- name: Create resources for {{ name }} deployment
+  k8s:
+    state: present
     definition: "{{ lookup('template', item.name) | from_yaml }}"
   loop:
     - name: secret.yml.j2

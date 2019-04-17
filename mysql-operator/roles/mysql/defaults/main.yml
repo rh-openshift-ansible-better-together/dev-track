@@ -8,7 +8,6 @@ state: present
 
 mysql_database: widgetfactory
 mysql_password: admin123
-mysql_root_password: admin123
 mysql_user: admin
 
 # Database capacity

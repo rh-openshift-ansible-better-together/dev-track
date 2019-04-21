@@ -1,7 +1,105 @@
-- name: "Set mysqlbackup objects state={{ state }}"
+- name: Create ad-hoc mysqlbackup objects
   k8s:
-    state: "{{ state }}"
+    state: present
     definition: "{{ lookup('template', item.name) | from_yaml }}"
   loop:
     - name: pvc.yml.j2
     - name: job.yml.j2
+  when: interval_minutes == 0
+
+- block: 
+    - name: Get mysqlbackup status
+      k8s_facts:
+        api_version: lab.redhat.com/v1
+        kind: MysqlBackup
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+      register: mysqlbackupFacts
+
+    - name: Set mysqlbackup pvc_count status to 0 if it has never been set
+      k8s_status:
+        api_version: lab.redhat.com/v1
+        kind: MysqlBackup
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+        status:
+          pvc_count: 0
+      when: "'pvc_count' not in mysqlbackupFacts.resources[0]['status']"
+
+    - name: Set mysqlbackup backup_active status to false if it has never been set
+      k8s_status:
+        api_version: lab.redhat.com/v1
+        kind: MysqlBackup
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+        status:
+          backup_active: false
+      when: "'backup_active' not in mysqlbackupFacts.resources[0]['status']"
+
+    - set_fact:
+        pvc_count: 0
+      when: "'pvc_count' not in mysqlbackupFacts.resources[0]['status']"
+
+    - set_fact:
+        pvc_count: "{{ mysqlbackupFacts.resources[0]['status']['pvc_count'] }}"
+      when: "'pvc_count' in mysqlbackupFacts.resources[0]['status']"
+
+    - set_fact:
+        backup_active: False
+      when: "'backup_active' not in mysqlbackupFacts.resources[0]['status']"
+
+    - set_fact:
+        backup_active: "{{ mysqlbackupFacts.resources[0]['status']['backup_active'] }}"
+      when: "'backup_active' in mysqlbackupFacts.resources[0]['status']"
+
+    - name: Create cronjob objects
+      k8s:
+        state: present
+        definition: "{{ lookup('template', item.name) | from_yaml }}"
+      loop:
+        - name: cronjob.yml.j2
+
+    - name: Get cronjob facts
+      k8s_facts:
+        api_version: v1beta1
+        kind: CronJob
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+      register: cronjobFacts
+
+    - name: Create pvc when cronjob is active
+      k8s:
+        state: present
+        definition: "{{ lookup('template', 'pvc.yml.j2') | from_yaml }}"
+      when: "'active' in cronjobFacts.resources[0]['status']"
+
+    - name: Set backup_active status to true on mysqlbackup if a backup is running
+      k8s_status:
+        api_version: lab.redhat.com/v1
+        kind: MysqlBackup
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+        status:
+          backup_active: true
+      when: "'active' in cronjobFacts.resources[0]['status']"
+
+    - name: If the backup is done running, bump the pvc_count
+      k8s_status:
+        api_version: lab.redhat.com/v1
+        kind: MysqlBackup
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+        status:
+          pvc_count: "{{ pvc_count | int + 1 }}"
+      when: "'active' not in cronjobFacts.resources[0]['status'] and backup_active == True"
+
+    - name: Set backup_active status to false on mysqlbackup if a backup is finished running
+      k8s_status:
+        api_version: lab.redhat.com/v1
+        kind: MysqlBackup
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+        status:
+          backup_active: false
+      when: "'active' not in cronjobFacts.resources[0]['status'] and backup_active == True"
+  when: interval_minutes > 0

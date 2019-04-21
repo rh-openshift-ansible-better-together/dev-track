@@ -1,15 +1,17 @@
 # Discovered from CustomResource metadata
-name: "{{ meta.name | default('mysqlbackup') }}"
-namespace: "{{ meta.namespace | default('mysql') }}"
+name: "{{ meta.name }}"
+namespace: "{{ meta.namespace }}"
+
+# Mysql image vars
 image: docker-registry.default.svc:5000/openshift/mysql
-
-# present - install
-# absent - uninstall
-state: present
-
-volume_capacity: 1Gi
-
 mysql_version: latest
 
 # Openshift service of the mysql deployment
 mysql_service: mysql
+
+# Backup capacity
+volume_capacity: 1Gi
+
+# Take backup every {{ intervalMinutes }} minutes.
+# A value of 0 means only take one backup
+interval_minutes: 0

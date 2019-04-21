@@ -4,3 +4,4 @@ metadata:
   name: mysqlbackup
 spec:
   image: "172.30.1.1:5000/openshift/mysql"
+  interval_minutes: 1

@@ -20,14 +20,14 @@ spec:
           valueFrom:
             secretKeyRef:
               key: database-root-password
-              name: {{ mysql_service }}
+              name: {{ mysql_deployment }}
         - name: DATABASE_NAME
           valueFrom:
             secretKeyRef:
               key: database-name
-              name: {{ mysql_service }}
+              name: {{ mysql_deployment }}
         command: ["/bin/bash", "-c"]
-        args: ["mysql --host {{ mysql_service }} -uroot -p$ROOT_PASSWORD $DATABASE_NAME < /var/backup/backup.sql"]
+        args: ["mysql --host {{ mysql_deployment }} -uroot -p$ROOT_PASSWORD $DATABASE_NAME < /var/backup/backup.sql"]
         volumeMounts:
         - mountPath: /var/backup
           name: backup

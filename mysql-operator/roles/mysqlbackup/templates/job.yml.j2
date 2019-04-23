@@ -5,6 +5,7 @@ metadata:
   namespace: {{ namespace }}
   labels:
     app: {{ name }}
+    role: backup
 spec:
   activeDeadlineSeconds: 18000
   backoffLimit: 6

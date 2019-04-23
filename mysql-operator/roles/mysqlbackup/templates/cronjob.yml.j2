@@ -5,6 +5,7 @@ metadata:
   namespace: {{ namespace }}
   labels:
     app: {{ name }}
+    role: backup
 spec:
   schedule: "*/{{ interval_minutes }} * * * *"
   activeDeadlineSeconds: 18000

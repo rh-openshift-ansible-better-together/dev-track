@@ -15,3 +15,6 @@ volume_capacity: 1Gi
 # Take backup every {{ intervalMinutes }} minutes.
 # A value of 0 means only take one backup
 interval_minutes: 0
+
+# Max number of backup PVCs to keep (if using a timed backup)
+max_backups: 3

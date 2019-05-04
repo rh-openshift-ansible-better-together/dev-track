@@ -1,8 +1,0 @@
-[db-server]
-ec2-54-161-113-184.compute-1.amazonaws.com
-
-[all:vars]
-ansible_user=student1
-ansible_ssh_pass=redhat01
-host_key_checking=False
-ansible_connection=ssh

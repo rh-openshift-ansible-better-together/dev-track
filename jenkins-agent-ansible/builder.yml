@@ -12,7 +12,7 @@ objects:
   kind: ImageStream
   metadata:
     labels:
-      application: "${APPLICATION_GROUP}-agent"
+      application: "jenkins-agent-ansible"
       group: "${APPLICATION_GROUP}"
       build: "${APPLICATION_NAME}"
       role: jenkins-slave
@@ -22,7 +22,7 @@ objects:
   kind: BuildConfig
   metadata:
     labels:
-      application: "${APPLICATION_GROUP}-agent"
+      application: "jenkins-agent-ansible"
       group: "${APPLICATION_GROUP}"
       build: "${APPLICATION_NAME}"
       type: image
@@ -53,21 +53,20 @@ objects:
       type: Docker
 parameters:
 - name: APPLICATION_NAME
-  value: widget-jenkins-agent
+  value: jenkins-agent-ansible
 - name: APPLICATION_GROUP
-  value: widget-factory
+  value: widgetfactory
 - name: APPLICATION_NAMESPACE
-  value: widget-factory
+  value: widgetfactory
 - name: SOURCE_REPOSITORY_URL
-  value: https://github.com/srang/rh-openshift-ansible-broker-lab
+  value: https://github.com/rh-openshift-ansible-better-together/dev-track.git
 - name: SOURCE_REF
   required: true
 - name: SOURCE_CONTEXT_DIR
-  value: widget-jenkins-agent
+  value: jenkins-agent-ansible
 - name: BUILDER_IMAGE_NAME
   value: registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
 - name: IMAGE_TAG
   value: latest
 - name: DOCKERFILE_PATH
   value: Dockerfile.rhel7
-

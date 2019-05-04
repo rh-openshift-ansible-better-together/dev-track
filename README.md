@@ -13,19 +13,17 @@ First we'll introduce how Ansible can be used to automate provisioning and maint
 
 In order to carry out the tasks required for this lab, you'll want to have the following tools installed on your system:
 - git
-- docker
 - oc
-- operator-sdk
 - a text editor of your choosing
 
 We've provided each participant with the choice of provisioning a RHEL7 VM that contains the required tools for this lab. Follow this link [here](TBD) if you want to provision a VM.
 
-Otherwise, you can install the tools on your local machine. Git and docker can be installed with your package manager. For example, on Fedora, CentOS, and RHEL:
+Otherwise, you can install the tools on your local machine. Git can be installed with your package manager. For example, on Fedora, CentOS, and RHEL:
 ```bash
-yum -y install git docker
+yum -y install git
 ```
 
-The OpenShift client (oc) can be downloaded [here](TBD) and the operator-sdk [here](TBD). The OpenShift client is used to talk to the OpenShift environment, and the operator-sdk is used to build the ansible operator. Feel free to move these tools somewhere managed by your PATH variable for easy access.
+The OpenShift client (oc) can be downloaded [here](TBD). The OpenShift client is used to talk to the OpenShift environment and is a necessary tool to have for any type of development on OpenShift.
 
 ## 2 Build and Deploy the Ansible Operator
 

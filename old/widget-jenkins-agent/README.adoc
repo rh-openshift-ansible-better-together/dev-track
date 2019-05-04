@@ -1,4 +1,0 @@
-= `widget-jenkins-agent`
-
-Jenkins slave with the addition of maven, ansible, and openshift clients for
-deploying the widget-factory service

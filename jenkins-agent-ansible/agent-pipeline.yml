@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: widget-jenkins-agent-pipeline
+  template: jenkins-agent-ansible-pipeline
 metadata:
-  name: widget-jenkins-agent-pipeline
+  name: jenkins-agent-ansible-pipeline
 objects:
 - kind: "BuildConfig"
   apiVersion: "v1"
@@ -31,18 +31,20 @@ objects:
           value: "${BUILDER_CONTEXT_DIR}"
         - name: "SOURCE_REF"
           value: "${SOURCE_REF}"
+        - name: "APPLICATION_NAME"
+          value: "${APPLICATION_NAME}"
 parameters:
 - name: APPLICATION_NAME
-  value: widget-factory
+  value: jenkins-agent-ansible
 - name: BUILDER_NAME
-  value: widget-jenkins-agent
+  value: jenkins-agent-ansible
 - name: APPLICATION_NAMESPACE
-  value: widget-factory
+  value: widgetfactory
 - name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/rh-openshift-ansible-better-together/dev-track.git
 - name: SOURCE_REF
   required: true
 - name: BUILDER_CONTEXT_DIR
-  value: widget-jenkins-agent
+  value: jenkins-agent-ansible
 - name: PIPELINE_SCRIPT
   value: Jenkinsfile

@@ -1,6 +1,0 @@
-spring:
-  jpa.hibernate.ddl-auto: create
-  datasource:
-    url: jdbc:mysql://${DB_SVC}:3306/${DB_NAME}
-    password: ${DB_PASS}
-    username: ${DB_USER}

@@ -1,7 +1,6 @@
 #!/usr/bin/env groovy
 openshift.withCluster() {
     env.NAMESPACE = openshift.project()
-    env.APPLICATION_NAME = 'widget-jenkins-agent'
     echo "Starting Pipeline for ${APPLICATION_NAME}..."
 }
 

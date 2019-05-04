@@ -1,6 +1,0 @@
----
-mysql_database: widget
-mysql_user: widget
-mysql_password: widget01
-mysql_host_access: '%'
-mysql_privileges: '*.*:ALL,GRANT'

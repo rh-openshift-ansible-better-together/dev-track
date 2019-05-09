@@ -3,8 +3,9 @@ name: "{{ meta.name | default('mysqlbackup') }}"
 namespace: "{{ meta.namespace | default('mysql') }}"
 
 # Mysql image vars
-image: docker-registry.default.svc:5000/openshift/mysql
-mysql_version: latest
+registry_url: docker-registry.default.svc:5000
+mysql_version: "5.7"
+image_namespace: openshift
 
 # Openshift service of the mysql deployment
 mysql_deployment: mysql

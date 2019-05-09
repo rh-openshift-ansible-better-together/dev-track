@@ -3,5 +3,5 @@ kind: MysqlRestore
 metadata:
   name: mysqlrestore
 spec:
-  image: "172.30.1.1:5000/openshift/mysql"
+  registry_url: image-registry.openshift-image-registry.svc:5000
   mysql_backup_pvc: mysqlbackup

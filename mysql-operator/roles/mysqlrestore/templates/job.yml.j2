@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backup
-        image: {{ image }}:{{ mysql_version }}
+        image: {{ registry_url }}/{{ image_namespace }}/mysql:{{ mysql_version }}
         env:
         - name: ROOT_PASSWORD
           valueFrom:

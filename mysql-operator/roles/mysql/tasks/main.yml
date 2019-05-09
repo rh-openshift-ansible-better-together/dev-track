@@ -22,4 +22,4 @@
     - name: secret.yml.j2
     - name: service.yml.j2
     - name: pvc.yml.j2
-    - name: deploymentconfig.yml.j2
+    - name: deployment.yml.j2

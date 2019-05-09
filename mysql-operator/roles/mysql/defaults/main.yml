@@ -15,5 +15,6 @@ volume_capacity: 1Gi
 
 memory_limit: 512Mi
 
-mysql_version: latest
+registry_url: docker-registry.default.svc:5000
+mysql_version: "5.7"
 image_namespace: openshift

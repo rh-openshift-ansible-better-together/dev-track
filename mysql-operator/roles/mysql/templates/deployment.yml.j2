@@ -1,5 +1,5 @@
-apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: {{ name }}
   namespace: {{ namespace }}
@@ -8,9 +8,8 @@ metadata:
 spec:
   replicas: 1
   selector:
-    name: {{ name }}
-  strategy:
-    type: Recreate
+    matchLabels:
+      name: {{ name }}
   template:
     metadata:
       labels:
@@ -38,7 +37,7 @@ spec:
             secretKeyRef:
               key: database-name
               name: {{ name }}
-        image: ' '
+        image: {{ registry_url }}/openshift/mysql:{{ mysql_version }}
         imagePullPolicy: IfNotPresent
         livenessProbe:
           initialDelaySeconds: 30
@@ -67,14 +66,3 @@ spec:
       - name: {{ name }}-data
         persistentVolumeClaim:
           claimName: {{ name }}
-  triggers:
-  - imageChangeParams:
-      automatic: true
-      containerNames:
-      - mysql
-      from:
-        kind: ImageStreamTag
-        name: mysql:{{ mysql_version }}
-        namespace: {{ image_namespace }}
-    type: ImageChange
-  - type: ConfigChange

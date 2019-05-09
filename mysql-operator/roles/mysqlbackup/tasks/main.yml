@@ -112,12 +112,17 @@
           - role = backup
       register: backup_pvc_list
 
+    - name: Sort PVC list by date
+      set_fact:
+        sorted_backup_pvc_list: "{{ backup_pvc_list.resources | sort(attribute='metadata.creationTimestamp') }}"
+      when: backup_pvc_list.resources | length > 0
+
     - name: Delete the oldest backup PVC if the max_backups limit is reached
       k8s:
         state: absent
         api_version: v1
         kind: PersistentVolumeClaim
-        name: "{{ backup_pvc_list.resources[0]['metadata']['name'] }}"
+        name: "{{ sorted_backup_pvc_list[0]['metadata']['name'] }}"
         namespace: "{{ namespace }}"
-      when: (backup_pvc_list.resources | length > 0) and (backup_pvc_list.resources | length % (max_backups | int + 1) == 0)
+      when: backup_pvc_list.resources | length > max_backups
   when: interval_minutes > 0

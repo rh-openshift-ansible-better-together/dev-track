@@ -124,5 +124,5 @@
         kind: PersistentVolumeClaim
         name: "{{ sorted_backup_pvc_list[0]['metadata']['name'] }}"
         namespace: "{{ namespace }}"
-      when: backup_pvc_list.resources | length > max_backups
+      when: backup_pvc_list.resources | length > max_backups + 1
   when: interval_minutes > 0

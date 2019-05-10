@@ -1,0 +1,33 @@
+---
+
+- name: Converge
+  hosts: localhost
+  connection: local
+  vars:
+    deploy_dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/deploy"
+    mysql_custom_resource: "{{ lookup('file', '/'.join([deploy_dir, 'crds/mysql/mysql_cr.yaml'])) | from_yaml }}"
+  tasks:
+  - name: Create the Mysql resource
+    k8s:
+      namespace: '{{ namespace }}'
+      definition: "{{ lookup('file', '/'.join([deploy_dir, 'crds/mysql/mysql_cr.yaml'])) }}"
+
+  - name: Give the Mysql deployment a chance to become ready
+    pause:
+      seconds: 90
+
+  #- name: Wait 40s for reconcilation to run
+  #  k8s_facts:
+  #    api_version: 'apps/v1'
+  #    kind: 'Deployment'
+  #    namespace: '{{ namespace }}'
+  #    name: '{{ mysql_custom_resource.metadata.name }}'
+  #  register: reconcile_cr
+  #  until:
+    #- reconcile_cr.status.readyReplicas == 1
+  #  - "'readyReplicas' in (reconcile_cr | json_query('resources[].status'))"
+    #- "'readyReplicas' in (reconcile_cr | json_query('resources[].status.conditions[].reason'))"
+  #  delay: 4
+  #  retries: 10
+
+- import_playbook: "{{ playbook_dir }}/../default/asserts.yml"

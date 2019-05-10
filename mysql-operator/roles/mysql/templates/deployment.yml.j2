@@ -20,22 +20,22 @@ spec:
         - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
-              key: database-user
+              key: database_user
               name: {{ name }}
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: database-password
+              key: database_password
               name: {{ name }}
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: database-root-password
+              key: database_root_password
               name: {{ name }}
         - name: MYSQL_DATABASE
           valueFrom:
             secretKeyRef:
-              key: database-name
+              key: database_name
               name: {{ name }}
         image: {{ registry_url }}/{{ image_namespace }}/mysql:{{ mysql_version }}
         imagePullPolicy: IfNotPresent

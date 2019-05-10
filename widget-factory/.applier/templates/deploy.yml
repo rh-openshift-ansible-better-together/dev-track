@@ -50,17 +50,17 @@ objects:
             valueFrom:
               secretKeyRef:
                 name: mysql
-                key: database-name
+                key: database_name
           - name: DB_USER
             valueFrom:
               secretKeyRef:
                 name: mysql
-                key: database-user
+                key: database_user
           - name: DB_PASS
             valueFrom:
               secretKeyRef:
                 name: mysql
-                key: database-password
+                key: database_password
           imagePullPolicy: Always
 - apiVersion: v1
   kind: Route

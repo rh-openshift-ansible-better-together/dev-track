@@ -19,12 +19,12 @@ spec:
         - name: ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: database-root-password
+              key: database_root_password
               name: {{ mysql_deployment }}
         - name: DATABASE_NAME
           valueFrom:
             secretKeyRef:
-              key: database-name
+              key: database_name
               name: {{ mysql_deployment }}
         command: ["/bin/bash", "-c"]
         args: ["mysql --host {{ mysql_deployment }} -uroot -p$ROOT_PASSWORD $DATABASE_NAME < /var/backup/backup.sql"]

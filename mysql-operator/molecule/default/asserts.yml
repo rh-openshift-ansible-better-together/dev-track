@@ -1,0 +1,41 @@
+---
+
+- name: Verify
+  hosts: localhost
+  connection: local
+  vars:
+    deploy_dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/deploy"
+    mysql_custom_resource: "{{ lookup('file', '/'.join([deploy_dir, 'crds/mysql/mysql_cr.yaml'])) | from_yaml }}"
+  tasks:
+    - name: Get Mysql deployment
+      k8s_facts:
+        api_version: 'apps/v1'
+        kind: 'Deployment'
+        namespace: '{{ namespace }}'
+        name: '{{ mysql_custom_resource.metadata.name }}'
+      register: mysql_deployment
+
+    - name: Ensure that database is ready
+      assert:
+        that: mysql_deployment.resources[0].status.readyReplicas == 1
+
+    - name: Get Mysql secret
+      k8s_facts:
+        api_version: 'v1'
+        kind: 'Secret'
+        namespace: '{{ namespace }}'
+        name: '{{ mysql_custom_resource.metadata.name }}'
+      register: mysql_secret
+
+    - set_fact:
+        mysql_user: '{{ mysql_secret.resources[0].data.database_user | b64decode }}'
+        mysql_password: '{{ mysql_secret.resources[0].data.database_password | b64decode }}'
+        mysql_database: '{{ mysql_secret.resources[0].data.database_name | b64decode }}'
+
+    - name: Run mysql command
+      command: mysql -h {{ mysql_custom_resource.metadata.name }} -u{{ mysql_user }} -p{{ mysql_password }}  {{ mysql_database }} -e "show tables"
+      register: mysql_result
+
+    - name: Ensure that database was created and credentials were registered
+      assert:
+        that: not mysql_result.stderr

@@ -22,9 +22,9 @@ objects:
   selector: {}
 - apiVersion: v1
   data:
-    database-name: ${DATABASE_NAME_ENC}
-    database-password: ${DATABASE_PASS_ENC}
-    database-user: ${DATABASE_USER_ENC}
+    database_name: ${DATABASE_NAME_ENC}
+    database_password: ${DATABASE_PASS_ENC}
+    database_user: ${DATABASE_USER_ENC}
   kind: Secret
   metadata:
     creationTimestamp: null

@@ -20,12 +20,12 @@ spec:
         - name: ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: database-root-password
+              key: database_root_password
               name: {{ mysql_service }}
         - name: DATABASE_NAME
           valueFrom:
             secretKeyRef:
-              key: database-name
+              key: database_name
               name: {{ mysql_service }}
         command: ["/bin/bash", "-c"]
         args: ["mysqldump --host {{ mysql_service }} -uroot -p$ROOT_PASSWORD --single-transaction $DATABASE_NAME > /var/backup/backup.sql"]

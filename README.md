@@ -1,5 +1,7 @@
 # OpenShift-Ansible Integration Lab
 
+Readme should be considered a rough sketch of the lab and not a step-by-step accurate guide as of right now. There's lots of things that depend on the official environment that can't be set in stone until the environment is actually created and tested there. But this is a good high level overview of the things that will be covered.
+
 ## 0 Introduction
 ### 0.1 Usecase
 Today we are building a Widget inventory tracking system called WidgetFactory. It's comprised of a simple data-driven application backed by MySQL. We will start with deploying a MySQL Ansible operator which will be used for provisioning and backup/restore operations. After that, we will leverage Ansible in a CI/CD pipeline to build and deploy the WidgetFactory application.
@@ -70,10 +72,9 @@ oc login <cluster-url>
 oc create -f mysql-operator/deploy/service_account.yaml
 oc create -f mysql-operator/deploy/role.yaml
 oc create -f mysql-operator/deploy/role_binding.yaml
-oc create -f mysql-operator/deploy/operator.yaml
 ```
 
-The Ansible operator is very lightweight and should spin up very quickly! Normally you would also have to create CRDs (custom resource definition) in order for the operator to reconcile its `watches.yaml` spec, but this was already done for you because it requires cluster-admin privileges (TODO: check that this is true and that they can't just create namespace-scoped CRDs)
+Normally you would also have to create CRDs (custom resource definition) in order for the operator to reconcile its `watches.yaml` spec, but this was already done for you because it requires cluster-admin privileges (Unless each user gets their own cluster)
 
 ### 3.3 Explore Molecule Playbooks
 The molecule playbooks at `mysql-operator/molecule` create live tests in the OpenShift environment. The `default/` folder provides a playbook consisting of tasks and assertions. The `test-cluster/` folder provides a playbook that creates the custom resources and waits for them to be ready.
@@ -107,6 +108,7 @@ TODO: Explain better that the test operator has tons of other things that add we
 operator-sdk build image-registry.openshift-image-registry.svc:5000/widgetfactory/mysql-operator --enable-tests
 docker login <openshift-registry>
 docker push <openshift-registry>/namespace/image
+oc create -f mysql-operator/deploy/operator.yaml (actually this just pulls from quay.io/adewey/mysql-operator right now and is not parameterized yet)
 ```
 
 TODO: Modify the molecule tests to actually remove the Mysql instance when the tests pass.

@@ -14,20 +14,6 @@
 
   - name: Give the Mysql deployment a chance to become ready
     pause:
-      seconds: 90
-
-  #- name: Wait 40s for reconcilation to run
-  #  k8s_facts:
-  #    api_version: 'apps/v1'
-  #    kind: 'Deployment'
-  #    namespace: '{{ namespace }}'
-  #    name: '{{ mysql_custom_resource.metadata.name }}'
-  #  register: reconcile_cr
-  #  until:
-    #- reconcile_cr.status.readyReplicas == 1
-  #  - "'readyReplicas' in (reconcile_cr | json_query('resources[].status'))"
-    #- "'readyReplicas' in (reconcile_cr | json_query('resources[].status.conditions[].reason'))"
-  #  delay: 4
-  #  retries: 10
+      seconds: 120
 
 - import_playbook: "{{ playbook_dir }}/../default/asserts.yml"

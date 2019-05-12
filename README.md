@@ -128,7 +128,7 @@ cd $LAB/mysql-operator
 operator-sdk build quay.io/<username>/mysql-operator-test --enable-tests
 ```
 
-Now that the test operator is built, let's push it to the OpenShift cluster with Docker.
+Now that the test operator is built, let's push it to Quay with Docker.
 ```bash
 docker login quay.io -u <username> -p <password>
 docker push quay.io/<username>/mysql-operator-test
@@ -146,9 +146,9 @@ cd $LAB/mysql-operator
 oc create -f deploy/service_account.yaml
 oc create -f deploy/role.yaml
 oc create -f deploy/role_binding.yaml
-oc create -f deploy/crds/mysql/mysql_cr.yaml
-oc create -f deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
-oc create -f deploy/crds/mysqlrestore/mysqlrestore_cr.yaml
+oc create -f deploy/crds/mysql/mysql_crd.yaml
+oc create -f deploy/crds/mysqlbackup/mysqlbackup_crd.yaml
+oc create -f deploy/crds/mysqlrestore/mysqlrestore_crd.yaml
 ```
 
 ### 4.4 Execute Operator Tests
@@ -227,7 +227,7 @@ The WidgetFactory application code is under `widget-factory/`. It's a simple spr
 ### 7.4 Ansible OpenShift Applier
 The WidgetFactory pipeline makes use of an Ansible role called the [OpenShift-Applier](https://github.com/redhat-cop/openshift-applier). The OpenShift Applier role is used to process and apply OpenShift templates. It's a useful Ansible role that allows you to specify all of your app's requirements in an OpenShift template and then leverage Ansible to supply parameters to the templates and apply them.
 
-The various OpenShift Applier files for WidgetFactory are under `$FILE/widget-factory/.applier`. You can find all of the parameters the template expects under `group_vars/all.yml`. The Jenkins pipeline will pass in the extra vars when the ansible-playbook command is run.
+The various OpenShift Applier files for WidgetFactory are under `$LAB/widget-factory/.applier`. You can find all of the parameters the template expects under `group_vars/all.yml`. The Jenkins pipeline will pass in the extra vars when the ansible-playbook command is run.
 
 ### 7.5 Deploy Application
 Now that the Ansible agent is created and the Jenkins pod is up and running, we're now ready to deploy our application:

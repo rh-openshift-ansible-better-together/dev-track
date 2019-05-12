@@ -1,0 +1,36 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: "${APPLICATION_NAME}"
+  annotations:
+    openshift.io/display-name: Ansible Jenkins Agent
+    description: "${APPLICATION_NAME} build pod template pre-configured to use a jenkins slave in the
+      same project/namespace"
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: "jenkins-agent-ansible"
+      group: "${APPLICATION_GROUP}"
+      build: "${APPLICATION_NAME}"
+      role: jenkins-slave
+    name: "${APPLICATION_NAME}"
+    namespace: "${APPLICATION_NAMESPACE}"
+  spec:
+    tags:
+    - from:
+        kind: DockerImage
+        name: "${REPOSITORY}"
+      referencePolicy:
+        type: Local
+parameters:
+- name: APPLICATION_NAME
+  value: jenkins-agent-ansible
+- name: APPLICATION_GROUP
+  value: widgetfactory
+- name: APPLICATION_NAMESPACE
+  value: widgetfactory
+- name: REPOSITORY
+  value: quay.io/adewey/jenkins-agent-ansible

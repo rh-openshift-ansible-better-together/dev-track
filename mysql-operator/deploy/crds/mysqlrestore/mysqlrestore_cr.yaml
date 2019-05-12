@@ -4,4 +4,4 @@ metadata:
   name: mysqlrestore
 spec:
   registry_url: image-registry.openshift-image-registry.svc:5000
-  mysql_backup_pvc: mysqlbackup
+  mysql_backup_pvc: BACKUP_PVC

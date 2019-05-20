@@ -1,5 +1,4 @@
-#ARG BASEIMAGE
-FROM quay.io/adewey/mysql-operator-intermediate
+FROM BASEIMAGE
 USER 0
 RUN yum install -y python-devel gcc libffi-devel && pip install molecule
 ARG NAMESPACEDMAN

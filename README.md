@@ -1,5 +1,10 @@
 # OpenShift-Ansible Integration Lab
 
+NOTES:
+1) sed 's/BASEIMAGE/quay.io\/adewey\/mysql-operator-test-intermediate/g' build/test-framework/Dockerfile for operator-sdk build --enable-tests
+2) The crds are already installed, so fix the doco
+3) Application namespace is required
+
 ## 0 Introduction
 Welcome to the Dev Track of the OpenShift + Ansible Better Together lab! Today you will learn about how Ansible can be leveraged to automate deployments and maintenance tasks on OpenShift. You'll gain experience around building an Ansible operator, and you'll integrate that operator with a data-driven app called WidgetFactory. Also, this lab will be performed on the brand new OpenShift 4 platform!
 

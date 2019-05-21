@@ -2,7 +2,7 @@
 
 openshift.withCluster() {
     env.NAMESPACE = openshift.project()
-    env.APPLICATION_NAME = "widgetfactory"
+    env.APPLICATION_NAME = "widget-factory"
     env.APPLICATION_RELEASE = "0.0.1"
     echo "Starting Pipeline for ${APPLICATION_NAME}..."
 }
@@ -13,12 +13,11 @@ pipeline {
     // After Pipeline completes the Pod is killed so every run will have clean
     // workspace
     agent {
-        label 'jenkins-agent-ansible'
+        label 'maven'
     }
     stages {
         // Run Maven build, skipping tests
         stage('Build & Test Application') {
-            agent { label 'maven' }
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
                     sh "mvn clean install -Pdebug"
@@ -28,6 +27,7 @@ pipeline {
 
         // apply ansible config
         stage('Apply OpenShift Manifests with Ansible') {
+            agent { label "jenkins-agent-ansible" }
             steps {
                 dir(env.APPLICATION_CONTEXT_DIR) {
                     sh """

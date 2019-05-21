@@ -19,16 +19,10 @@ openshift_cluster_content:
   - name: "widget-factory-deploy"
     template: "{{ inventory_dir }}/../templates/deploy.yml"
     params_from_vars: "{{ application_release_params }}"
-    namespace: widget-factory
-- object: deployment
-  content:
-  - name: "widget-factory-db"
-    template: "{{ inventory_dir }}/../templates/db-service.yml"
-    params_from_vars: "{{ db_service_params }}"
-    namespace: widget-factory
+    namespace: test
 - object: build
   content:
   - name: "widget-factory build"
     template: "{{ inventory_dir }}/../templates/build.yml"
     params_from_vars: "{{ application_build_params }}"
-    namespace: widget-factory
+    namespace: test

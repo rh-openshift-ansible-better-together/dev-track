@@ -62,7 +62,7 @@ objects:
                 name: mysql
                 key: database_password
           imagePullPolicy: Always
-- apiVersion: v1
+- apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     labels:
@@ -93,10 +93,10 @@ objects:
     type: ClusterIP
 parameters:
 - name: REGISTRY_URL
-  value: docker-registry.default.svc
+  value: image-registry.openshift-image-registry.svc
 - name: APPLICATION_NAME
   value: widget-factory
 - name: APPLICATION_RELEASE
   required: true
 - name: APPLICATION_NAMESPACE
-  value: widget-factory
+  value: test

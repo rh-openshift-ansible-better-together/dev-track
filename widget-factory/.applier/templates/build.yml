@@ -8,7 +8,7 @@ metadata:
     tags: demo,java
   name: widget-factory-build-template
 objects:
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
@@ -16,7 +16,7 @@ objects:
       group: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}
     namespace: "${APPLICATION_NAMESPACE}"
-- apiVersion: v1
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     labels:
@@ -46,10 +46,10 @@ parameters:
 - name: APPLICATION_NAME
   value: widget-factory
 - name: APPLICATION_SOURCE_REPOSITORY_URL
-  value: https://github.com/srang/rh-openshift-ansible-broker-lab.git
+  value: https://github.com/rh-openshift-ansible-better-together/dev-track.git
 - name: SOURCE_REF
-  value: master
+  value: "feature/widgetfactory"
 - name: APPLICATION_CONTEXT_DIR
   value: widget-factory
 - name: APPLICATION_NAMESPACE
-  value: widget-factory
+  value: test

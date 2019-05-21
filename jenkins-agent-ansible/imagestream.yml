@@ -24,13 +24,14 @@ objects:
         kind: DockerImage
         name: "${REPOSITORY}"
       referencePolicy:
-        type: Local
+        type: Source
+      name: latest
 parameters:
 - name: APPLICATION_NAME
   value: jenkins-agent-ansible
 - name: APPLICATION_GROUP
   value: widgetfactory
 - name: APPLICATION_NAMESPACE
-  value: widgetfactory
+  value: test
 - name: REPOSITORY
   value: quay.io/adewey/jenkins-agent-ansible

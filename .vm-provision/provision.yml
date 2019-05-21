@@ -8,8 +8,8 @@
       ec2:
         key_name: labs
         group: ssh-all
-        instance_type: t2.micro
-        image: ami-05220ffa0e7fce3d1
+        instance_type: t2.medium
+        image: ami-0f2b4fc905b0bd1f1
         wait: true
         exact_count: 1
         count_tag:

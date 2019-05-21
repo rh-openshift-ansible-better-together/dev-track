@@ -179,8 +179,8 @@ Now that we know the tests have passed, let's build the more lightweight product
 cd $LAB/mysql-operator
 operator-sdk build quay.io/$QUAY_USER/mysql-operator
 docker push quay.io/$QUAY_USER/mysql-operator
-sed -i "s/OPERATOR_IMAGE/quay.io\/$QUAY_USER\/mysql-operator/g" mysql-operator/deploy/operator.yaml
-oc create -f mysql-operator/deploy/operator.yaml
+sed -i "s/OPERATOR_IMAGE/quay.io\/$QUAY_USER\/mysql-operator/g" $LAB/mysql-operator/deploy/operator.yaml
+oc create -f $LAB/mysql-operator/deploy/operator.yaml
 ```
 
 ## 6 Deploy a MySQL Server
@@ -209,7 +209,7 @@ OpenShift provides a `JenkinsPipeline` build strategy that creates a Jenkins pip
 
 First, we need to deploy a Jenkins instance to the widgetfactory project. Deploy a Jenkins instance with:
 ```bash
-oc new-app jenkins-ephemeral -p MEMORY_LIMIT=1Gi
+oc new-app jenkins-ephemeral -p MEMORY_LIMIT=2Gi
 ```
 
 Your login credentials to Jenkins will be the same as your `$OCP_USER` and `$OCP_PASS` credentials.
@@ -236,10 +236,12 @@ The various OpenShift Applier files for WidgetFactory are under `$LAB/widget-fac
 Now that the Ansible agent is created and the Jenkins pod is up and running, we're now ready to deploy our application:
 ```bash
 oc process -f widget-factory/widget-pipeline.yml --param=SOURCE_REF=master --param DATABASE_HOST=mysql --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
-oc start-build widget-factory-pipeline --follow
+oc start-build widget-factory-pipeline
 ```
 
-From here, `oc` will output the build logs to stdout. When the build is finished, the command will terminate and you should see the WidgetFactory pod in the OpenShift UI. 
+To view the build's progress, expand `Builds` on the sidebar in the OpenShift UI and click `Builds` underneath that. Click on the widget-factory pipeline. You'll probably find that it is still pending and that there are no build logs displayed. This simply means that Jenkins is not ready yet, and when it is, the build will start and logs will display (you should see `View Logs` underneath the build number).
+
+Once you see the `View Logs` on the UI, you'll need to confirm the security exception and log into Jenkins. The credentials are the same as your OpenShift username and password.
 
 When the app started up, it persisted many different widgets to the MySQL instance we created earlier. Let's return our focus back to the Ansible operator to perform a data snapshot of the database.
 

@@ -18,4 +18,4 @@ volume_capacity: 1Gi
 interval_minutes: 0
 
 # Max number of backup PVCs to keep (if using a timed backup)
-max_backups: 3
+max_backups: 2

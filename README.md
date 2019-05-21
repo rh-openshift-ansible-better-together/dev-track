@@ -15,12 +15,13 @@ There are a few different tools you need in order to complete the lab:
 - git
 - oc
 
-We've provided an environment for you that already has these tools installed and ready to go, which we strongly recommend using because the lab instructions were written based off of it. SSH into the environment:
-```bash
-ssh blah blah blah
-```
+We've provided an environment for you that already has these tools installed and ready to go, which we strongly recommend using because the lab instructions were written based off of it.
 
-Optionally, you can use your local machine to complete the lab. Docker and git can be installed with your package manager, for example, `yum install -y docker oc`. Operator-sdk can be downloaded [here](https://github.com/operator-framework/operator-sdk/releases/download/v0.5.0/operator-sdk-v0.5.0-x86_64-linux-gnu) and the OpenShift Client (oc) can be downloaded [here](https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-server-v3.11.0-0cbc58b-linux-64bit.tar.gz).
+You'll be assigned an environment and provided a bit.ly link to the private key required to access the environment. Copy and paste the key into a file locally, and save it as key.pem. Then ssh into your environment with
+
+```bash
+ssh -i key.pem <assigned-VM>
+```
 
 After you SSH or set up your environment locally, you should clone this repo:
 ```bash
@@ -249,17 +250,17 @@ When the app started up, it persisted many different widgets to the MySQL instan
 ### 8.1 MysqlBackup Overview
 If you recall, the operator that we created earlier contains a role called `mysqlbackup`. This role is capable of taking both ad-hoc and timed hot, logical backups of the MySQL database. The backup is triggered when a `MysqlBackup` CR is created in the project. 
 
-Check out the `mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml` resource and notice its `spec:` stanza. Key/value pairs under `spec:` are defined as extra vars to the Ansible role. Notice how this CR has an `interval_minutes: 10` defined on its spec. This passes the `interval_minutes` var to the role, which tells Ansible to take a backup every x number of minutes. If you check out `$LAB/mysql-operator/roles/mysqlbackup/defaults/main.yml`, you'll find that the default value for this var is `0`, which means that the backup will not be timed but rather will be a single, ad-hoc backup.
+Check out the `mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml` resource and notice its `spec:` stanza. Key/value pairs under `spec:` are defined as extra vars to the Ansible role. Notice how this CR has an `interval_minutes: 0` defined on its spec. This passes the `interval_minutes` var to the role, which tells Ansible to take a backup every x number of minutes. In this case, the role is configured to interpret 0 interval_minutes as an ad-hoc backup. Let's keep the CR the way it is for now.
 
 For this lab, the `mysqlbackup` role will take each backup on a separate PVC.
 
-### 8.2 Initiate a Timed Backup
-Let's see this backup role in action! We'll use the MysqlBackup spec defined in the given `mysqlbackup_cr.yaml`, which will take a backup of the database every 5 minutes. Begin the backup process with:
+### 8.2 Initiate an Ad-Hoc Backup
+Let's see this backup role in action! We'll use the MysqlBackup spec defined in the given `mysqlbackup_cr.yaml`, which will take an ad-hoc backup of the database. Begin the backup process with:
 ```bash
 oc create -f $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
 ```
 
-This will create an OpenShift cronjob that is responsible for mounting a brand new PVC every `interval_minutes`. It will keep `max_backups` completed backup PVCs in your project (defined in the `defaults/` of the mysqlbackup role). Feel free to observe this process with `oc describe cronjob mysql-backup`, `oc describe mysqlbackup mysqlbackup`, and `oc get pvc`. Wait until at least one backup pvc is created, then continue to the next part of the lab.
+This will create an OpenShift cronjob that is responsible for mounting a brand new PVC and using it to back up the database's current state. It will keep `max_backups` completed backup PVCs in your project (defined in the `defaults/` of the mysqlbackup role). Wait until the PVC is created and then continue to the next step. You can run `oc get pvc` to determine if the PVC has been created. By default, the backup PVC will be called `mysqlbackup`.
 
 ## 9 Restore the MySQL Database
 Here, we'll try to simulate a disaster recovery scenario in which data is lost from the database and a restore operation must take place.
@@ -272,28 +273,36 @@ oc rsh deployment/mysql
 
 Once inside the pod, delete some data with:
 ```bash
-mysql -h localhost -u admin -padmin123 widgetfactory -e "DROP TABLE " <- need to do a runthrough to find table names
+mysql -h localhost -u admin -padmin123 widgetfactory -e "DROP TABLE widget"
 exit
 ```
 
 ### 9.2 Restore the MySQL Database
-Find the MysqlRestore CR at `mysql-backup/deploy/crds/mysqlrestore/mysqlrestore_cr.yaml`. In the spec you'll find a `mysql_backup_pvc` key defined under the spec that will be passed as an extra var to the Ansible role. Provide the name of a backup PVC that was created before the MySQL outtage. You can find a creation timstamp with:
-```bash
-oc get pvc
-oc describe pvc <pvc-name>
-```
+Find the MysqlRestore CR at `mysql-backup/deploy/crds/mysqlrestore/mysqlrestore_cr.yaml`. In the spec you'll find a `mysql_backup_pvc` key defined under the spec that will be passed as an extra var to the Ansible role. Provide the name of a backup PVC that was created before the MySQL outtage.
 
-Once you find a good backup to use, supply the name of the backup to the `mysql_backup_pvc` var of the `mysqlrestore_cr.yaml`:
+Once you find a good backup to use, supply the name of the backup to the `mysql_backup_pvc` var of the `mysqlrestore_cr.yaml` Then trigger the restore:
 ```bash
-sed -i 's/BACKUP_PVC/mysql-backup-1/g' $LAB/mysql-operator/deploy/crds/mysqlrestore/mysqlrestore_cr.yaml
+sed -i 's/BACKUP_PVC/mysqlbackup/g' $LAB/mysql-operator/deploy/crds/mysqlrestore/mysqlrestore_cr.yaml
+oc create -f $LAB/mysql-operator/deploy/crds/mysqlrestore/mysqlrestore_cr.yaml
 ```
 
 This will create an OpenShift job that will mount the backup PVC. It will connect to the MySQL database and will apply the backup script to restore the contents of the database.
 
-You can check to make sure that the restore was successful by using `oc rsh` again:
+You can run `watch oc get jobs` to wait for the restore job to run and finish. You'll know when it's finished when the `mysqlrestore` job has `1/1` completions.
+
+You can check to make sure that the restore was successful by using `oc rsh deployment/mysql` again:
 ```bash
-mysql -h localhost -u admin -padmin123 widgetfactory -e "select * from " <- dont know the table name
+mysql -h localhost -u admin -padmin123 widgetfactory -e "select * from widget"
 ```
 
-# 10 Thank You!
-Thank you for attending the OpenShift/Ansible Better Together lab! Hopefully you learned more about how Ansible and OpenShift can be leveraged together to allow deployments and maintenance to be a breeze! To learn more: <provide links>
+## 10 For fun - Scheduled MySQL Backup
+Previously we ran an ad-hoc backup using the mysqlbackup CR. We can use the same mysqlrestore resource we created eariler to create a scheduled backup. Modify the existing restore object with:
+```bash
+oc edit mysqlrestore mysqlrestore
+```
+Modify the `spec.interval_minutes` from 0 to 10. This will create a cronjob that takes a backup every 10 minutes. By default, it will keep `max_backups` backup PVCs, which is defined as 2 under `$LAB/mysql-operator/roles/mysqlbackup/defaults/main.yml`.
+
+Feel free to observe the backup process with `watch oc get cronjob` and `watch oc get pvc`.
+
+## 11 Thank you!
+Thank you for attending our workshop today! Hopefully you learned a lot about how OpenShift and Ansible can come together to accelerate delivery and innovation.

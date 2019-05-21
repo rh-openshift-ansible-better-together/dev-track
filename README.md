@@ -20,7 +20,8 @@ We've provided an environment for you that already has these tools installed and
 You'll be assigned an environment and provided a bit.ly link to the private key required to access the environment. Copy and paste the key into a file locally, and save it as key.pem. Then ssh into your environment with
 
 ```bash
-ssh -i key.pem <assigned-VM>
+ssh -i key.pem ec2-user@<assigned-VM>
+sudo -i
 ```
 
 After you SSH or set up your environment locally, you should clone this repo:
@@ -107,7 +108,7 @@ Here you'll find three Ansible roles:
 | Role | Purpose |
 | ---- | ------- |
 | mysql | Deploy a single-node MySQL server |
-| mysqlbackup | Initiate an ad-hoc or timed backup of the MySQL database |
+| mysqlbackup | Initiate an ad-hoc or scheduled backup of the MySQL database |
 | mysqlrestore | Restore the database to a previous data backup |
 
 Each of these roles relies heavily on the `k8s`, `k8s_facts`, and `k8s_status` Ansible modules, which are leveraged in this lab to create OpenShift resources, get information on existing resources, and set CR statuses.
@@ -248,7 +249,7 @@ When the app started up, it persisted many different widgets to the MySQL instan
 
 ## 8 Back up the MySQL Database
 ### 8.1 MysqlBackup Overview
-If you recall, the operator that we created earlier contains a role called `mysqlbackup`. This role is capable of taking both ad-hoc and timed hot, logical backups of the MySQL database. The backup is triggered when a `MysqlBackup` CR is created in the project. 
+If you recall, the operator that we created earlier contains a role called `mysqlbackup`. This role is capable of taking both ad-hoc and scheduled hot, logical backups of the MySQL database. The backup is triggered when a `MysqlBackup` CR is created in the project. 
 
 Check out the `mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml` resource and notice its `spec:` stanza. Key/value pairs under `spec:` are defined as extra vars to the Ansible role. Notice how this CR has an `interval_minutes: 0` defined on its spec. This passes the `interval_minutes` var to the role, which tells Ansible to take a backup every x number of minutes. In this case, the role is configured to interpret 0 interval_minutes as an ad-hoc backup. Let's keep the CR the way it is for now.
 
@@ -296,11 +297,13 @@ mysql -h localhost -u admin -padmin123 widgetfactory -e "select * from widget"
 ```
 
 ## 10 For fun - Scheduled MySQL Backup
-Previously we ran an ad-hoc backup using the mysqlbackup CR. We can use the same mysqlrestore resource we created eariler to create a scheduled backup. Modify the existing restore object with:
+Previously we ran an ad-hoc backup using the mysqlbackup CR. We can create a different mysqlbackup CR to take a scheduled backup of the database:
 ```bash
-oc edit mysqlrestore mysqlrestore
+sed -i 's/name: mysqlbackup/name: mysqlscheduledbackup/g' $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
+sed -i 's/interval_minutes: 0/interval_minutes: 15/g' $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
+oc create -f $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
 ```
-Modify the `spec.interval_minutes` from 0 to 10. This will create a cronjob that takes a backup every 10 minutes. By default, it will keep `max_backups` backup PVCs, which is defined as 2 under `$LAB/mysql-operator/roles/mysqlbackup/defaults/main.yml`.
+Modify the `spec.interval_minutes` from 0 to 15. This will create a cronjob that takes a backup every 15 minutes. By default, it will keep `max_backups` backup PVCs, which is defined as 2 under `$LAB/mysql-operator/roles/mysqlbackup/defaults/main.yml`.
 
 Feel free to observe the backup process with `watch oc get cronjob` and `watch oc get pvc`.
 

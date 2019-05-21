@@ -58,7 +58,7 @@ oc new-project $OCP_USER
 ## 2 Create Quay Account and Repositories
 In this lab we're going to build a new operator with Ansible. The operator itself is simply a container image, so we need a place to store it so we can reference it in a future deployment.
 
-Let's create a Quay account if you don't have one already. Go to https://quay.io/signin/ and click `Create Account` at the bottom. Provide your username, email address, and password. Optionally, you can sign in with an existing Google or GitHub account and follow the prompts.
+Let's create a Quay account if you don't have one already. Go to https://quay.io/signin/ and click `Create Account` at the bottom. Provide your username, email address, and password. Optionally, you can sign in with an existing Google or GitHub account and follow the prompts, but you'll need to be sure to go to account settings and change your password since you'll need one to log in with docker.
 
 Once your account is created, click on `Create New Repository` in the upper right. In the text box that says `Repository Name`, type `mysql-operator`. Select the `Public` radio button. Then click `Create Public Repository`.
 

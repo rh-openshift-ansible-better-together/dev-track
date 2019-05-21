@@ -45,21 +45,21 @@ objects:
           - name: SPRING_PROFILES_ACTIVE
             value: openshift
           - name: DB_SVC
-            value: mysql
+            value: ${DB_SVC}
           - name: DB_NAME
             valueFrom:
               secretKeyRef:
-                name: mysql
+                name: ${DB_SVC}
                 key: database_name
           - name: DB_USER
             valueFrom:
               secretKeyRef:
-                name: mysql
+                name: ${DB_SVC}
                 key: database_user
           - name: DB_PASS
             valueFrom:
               secretKeyRef:
-                name: mysql
+                name: ${DB_SVC}
                 key: database_password
           imagePullPolicy: Always
 - apiVersion: route.openshift.io/v1
@@ -100,3 +100,5 @@ parameters:
   required: true
 - name: APPLICATION_NAMESPACE
   required: true
+- name: DB_SVC
+  value: mysql

@@ -5,12 +5,7 @@ application_release_params:
   APPLICATION_RELEASE: "{{ application_release }}"
   REGISTRY_URL: "{{ registry_url }}"
   APPLICATION_NAMESPACE: "{{ deploy_namespace }}"
-
-db_service_params:
-  DATABASE_URL: "{{ db_url }}"
-  DATABASE_NAME_ENC: "{{ db_name | b64encode }}"
-  DATABASE_USER_ENC: "{{ db_user | b64encode }}"
-  DATABASE_PASS_ENC: "{{ db_pass | b64encode }}"
+  DB_SVC: "{{ db_svc }}"
 
 application_build_params:
   APPLICATION_SOURCE_REPOSITORY_URL: "{{ application_source_repository_url }}"

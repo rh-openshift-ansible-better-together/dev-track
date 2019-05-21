@@ -35,8 +35,7 @@ pipeline {
                         ansible-playbook -i .applier/inventory/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml \
                             -e source_ref=${env.SOURCE_REF} -e application_source_repository_url=${env.APPLICATION_SOURCE_REPOSITORY_URL} \
                             -e registry_url='${env.REGISTRY_URL}' \
-                            -e application_release=${env.APPLICATION_RELEASE} -e db_url=${env.DATABASE_HOST} \
-                            -e db_name='widgetfactory' -e db_user='admin' -e db_pass='admin123' \
+                            -e application_release=${env.APPLICATION_RELEASE} -e db_svc=${env.DATABASE_HOST} \
                             -e namespace=${env.NAMESPACE}
                     """
                     script {

@@ -39,7 +39,7 @@ parameters:
 - name: APPLICATION_NAME
   value: widget-factory
 - name: APPLICATION_NAMESPACE
-  value: test
+  required: true
 - name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/rh-openshift-ansible-better-together/dev-track.git
 - name: SOURCE_REF

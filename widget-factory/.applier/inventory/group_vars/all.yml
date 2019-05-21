@@ -1,7 +1,10 @@
 ---
+deploy_namespace: "{{ namespace }}"
+
 application_release_params:
   APPLICATION_RELEASE: "{{ application_release }}"
   REGISTRY_URL: "{{ registry_url }}"
+  APPLICATION_NAMESPACE: "{{ deploy_namespace }}"
 
 db_service_params:
   DATABASE_URL: "{{ db_url }}"
@@ -12,6 +15,7 @@ db_service_params:
 application_build_params:
   APPLICATION_SOURCE_REPOSITORY_URL: "{{ application_source_repository_url }}"
   SOURCE_REF: "{{ source_ref }}"
+  APPLICATION_NAMESPACE: "{{ deploy_namespace }}"
 
 openshift_cluster_content:
 - object: deployment
@@ -19,10 +23,10 @@ openshift_cluster_content:
   - name: "widget-factory-deploy"
     template: "{{ inventory_dir }}/../templates/deploy.yml"
     params_from_vars: "{{ application_release_params }}"
-    namespace: test
+    namespace: "{{ deploy_namespace }}"
 - object: build
   content:
   - name: "widget-factory build"
     template: "{{ inventory_dir }}/../templates/build.yml"
     params_from_vars: "{{ application_build_params }}"
-    namespace: test
+    namespace: "{{ deploy_namespace }}"

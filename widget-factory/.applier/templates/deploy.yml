@@ -99,4 +99,4 @@ parameters:
 - name: APPLICATION_RELEASE
   required: true
 - name: APPLICATION_NAMESPACE
-  value: test
+  required: true

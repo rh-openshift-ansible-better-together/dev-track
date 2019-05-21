@@ -48,8 +48,8 @@ parameters:
 - name: APPLICATION_SOURCE_REPOSITORY_URL
   value: https://github.com/rh-openshift-ansible-better-together/dev-track.git
 - name: SOURCE_REF
-  value: "feature/widgetfactory"
+  value: master
 - name: APPLICATION_CONTEXT_DIR
   value: widget-factory
 - name: APPLICATION_NAMESPACE
-  value: test
+  required: true

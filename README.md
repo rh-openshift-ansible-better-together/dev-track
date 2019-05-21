@@ -17,10 +17,17 @@ There are a few different tools you need in order to complete the lab:
 
 We've provided an environment for you that already has these tools installed and ready to go, which we strongly recommend using because the lab instructions were written based off of it.
 
-You'll be assigned an environment and provided a bit.ly link to the private key required to access the environment. Copy and paste the key into a file locally, and save it as key.pem. Then ssh into your environment with
+You'll need the private key to ssh into the VM. Download the key with:
+```bash
+curl -O https://s3.us-east-2.amazonaws.com/adeweylab/ocpkey.pem
+chmod 400 ocpkey.pem
+```
+
+You'll be assigned a number when we start the lab. Ssh into your environment with
 
 ```bash
-ssh -i key.pem ec2-user@<assigned-VM>
+export USER_NUMBER=<number>
+ssh -i ocpkey.pem ec2-user@bastion.workshop-day1-vm$USER_NUMBER.example.opentlc.com
 sudo -i
 ```
 
@@ -37,7 +44,7 @@ export LAB="~/dev-track"
 
 ### 1.1 Log in to OpenShift
 You'll need to log into OpenShift with the `oc` tool to talk to the cluster from the command line. You'll also want to log into the UI.
-Log in using `oc`. When prompted with the user, provide the username that you were assigned. For the password, enter `r3dh4t1!`.
+Log in using `oc`. When prompted with the user, provide the username that you were assigned. Your username is `user$USER_NUMBER`, so if you were assigned user 1, your username would be `user1`. For the password, enter `r3dh4t1!`.
 ```bash
 oc login https://api.cluster-52a2.52a2.ocp4.opentlc.com:6443
 ```

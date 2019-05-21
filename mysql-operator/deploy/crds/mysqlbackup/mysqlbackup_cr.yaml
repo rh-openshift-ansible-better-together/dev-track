@@ -4,4 +4,4 @@ metadata:
   name: mysqlbackup
 spec:
   registry_url: image-registry.openshift-image-registry.svc:5000
-  interval_minutes: 10
+  interval_minutes: 0

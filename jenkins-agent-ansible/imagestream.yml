@@ -32,6 +32,6 @@ parameters:
 - name: APPLICATION_GROUP
   value: widgetfactory
 - name: APPLICATION_NAMESPACE
-  value: test
+  required: true
 - name: REPOSITORY
   value: quay.io/adewey/jenkins-agent-ansible

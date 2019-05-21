@@ -1,13 +1,5 @@
 # OpenShift-Ansible Integration Lab
 
-NOTES:
-1) sed 's/BASEIMAGE/quay.io\/adewey\/mysql-operator-test-intermediate/g' build/test-framework/Dockerfile for operator-sdk build --enable-tests
-2) The crds are already installed, so fix the doco
-3) Application namespace is required
-4) Just import the image oc import-image quay.io/adewey/jenkins-agent-ansible --confirm
-5) Change all the 'test' and 'feature/' to parameterized and master
-6) Run an ad-hoc backup first, then run a scheduled backup
-
 ## 0 Introduction
 Welcome to the Dev Track of the OpenShift + Ansible Better Together lab! Today you will learn about how Ansible can be leveraged to automate deployments and maintenance tasks on OpenShift. You'll gain experience around building an Ansible operator, and you'll integrate that operator with a data-driven app called WidgetFactory. Also, this lab will be performed on the brand new OpenShift 4 platform!
 
@@ -32,28 +24,33 @@ Optionally, you can use your local machine to complete the lab. Docker and git c
 
 After you SSH or set up your environment locally, you should clone this repo:
 ```bash
-cd
+cd ~
 git clone https://github.com/rh-openshift-ansible-better-together/dev-track.git
 ```
 
-Set an environment variable to point to this lab so you can reference the examples used throughout this workshop:
+Set an environment variable to reference the examples in this workshop:
 ```bash
 export LAB="~/dev-track"
 ```
 
 ### 1.1 Log in to OpenShift
 You'll need to log into OpenShift with the `oc` tool to talk to the cluster from the command line. You'll also want to log into the UI.
-Log into using `oc`:
+Log in using `oc`. When prompted with the user, provide the username that you were assigned. For the password, enter `r3dh4t1!`.
 ```bash
-oc login <blah blah>
+oc login https://api.cluster-52a2.52a2.ocp4.opentlc.com:6443
 ```
 
-Log into the UI by following this link <blah blah>. You login credentials are <blah blah>.
+Log into the UI by following this link http://console-openshift-console.apps.cluster-52a2.52a2.ocp4.opentlc.com. The login credentials are the same here as they were for `oc`.
+
+Set an environment variable to reference your username throughout this lab:
+```bash
+export OCP_USER=<assigned-username>
+```
 
 ### 1.2 Create OpenShift Project
 You'll need to create an OpenShift project to perform the lab in. Create a project with:
 ```bash
-oc new-project widgetfactory
+oc new-project $OCP_USER
 ```
 
 ## 2 Create Quay Account and Repositories
@@ -67,7 +64,11 @@ Create another repository called `mysql-operator-test`, following the same proce
 
 By the end of this section you should have two repositories in Quay under your account called `mysql-operator` and `mysql-operator-test`.
 
-TODO: See if these actually need to be public!
+Set an environment variable to reference your Quay account:
+```bash
+export QUAY_USER=<quay-user>
+export QUAY_PASS=<quay-password>
+```
 
 ## 3 Review the Ansible Operator
 
@@ -133,13 +134,13 @@ We need to turn the Ansible plays into a Docker image so that it can be deployed
 On the command line, navigate to the `mysql-operator` directory and build the test operator:
 ```bash
 cd $LAB/mysql-operator
-operator-sdk build quay.io/<username>/mysql-operator-test --enable-tests
+operator-sdk build quay.io/$QUAY_USER/mysql-operator-test --enable-tests
 ```
 
 Now that the test operator is built, let's push it to Quay with Docker.
 ```bash
-docker login quay.io -u <username> -p <password>
-docker push quay.io/<username>/mysql-operator-test
+docker login quay.io -u $QUAY_USER -p $QUAY_PASS
+docker push quay.io/$QUAY_USER/mysql-operator-test
 ```
 
 You'll find that this is a somewhat large image. The production-sized operator is much smaller, which is why after we test and validate that the operator is working we should rebuild without the `--enable-tests` flag to remove the test artifacts.
@@ -154,9 +155,6 @@ cd $LAB/mysql-operator
 oc create -f deploy/service_account.yaml
 oc create -f deploy/role.yaml
 oc create -f deploy/role_binding.yaml
-oc create -f deploy/crds/mysql/mysql_crd.yaml
-oc create -f deploy/crds/mysqlbackup/mysqlbackup_crd.yaml
-oc create -f deploy/crds/mysqlrestore/mysqlrestore_crd.yaml
 ```
 
 ### 4.4 Execute Operator Tests
@@ -167,7 +165,7 @@ cd $LAB/mysql-operator
 
 Then trigger the tests:
 ```bash
-operator-sdk test cluster quay.io/<username>/mysql-operator-test --service-account mysql-operator
+operator-sdk test cluster quay.io/$QUAY_USER/mysql-operator-test --service-account mysql-operator
 ```
 
 The command will hang for a couple minutes until the tests complete. You should be able to see the operator and the MySQL server spin up in OpenShift.
@@ -179,14 +177,11 @@ Now that we know the tests have passed, let's build the more lightweight product
 
 ```bash
 cd $LAB/mysql-operator
-operator-sdk build quay.io/<username>/mysql-operator
-docker push quay.io/<username>/mysql-operator
+operator-sdk build quay.io/$QUAY_USER/mysql-operator
+docker push quay.io/$QUAY_USER/mysql-operator
+sed -i "s/OPERATOR_IMAGE/quay.io\/$QUAY_USER\/mysql-operator/g" mysql-operator/deploy/operator.yaml
 oc create -f mysql-operator/deploy/operator.yaml
 ```
-
-In a later section, we'll be building the WidgetFactory app in a CI/CD pipeline. We chose to not do it this way for the operator because the operator-sdk currently requires Docker to build the operator, meaning that the Jenkins agent would need to be privileged. Running privileged containers on OpenShift is a bad practice. Future versions of the operator-sdk will support [Buildah](https://github.com/containers/buildah), which is a daemonless image-building tool that can run unprivileged on a Jenkins agent and enable CI/CD builds.
-
-TODO: Modify the molecule tests to actually remove the Mysql instance when the tests pass. For now, just remove it with `oc delete mysql mysql`.
 
 ## 6 Deploy a MySQL Server
 Now that the Ansible operator is deployed, it's super easy to deploy a MySQL server onto OpenShift! First, let's check out the MySQL CR:
@@ -217,7 +212,7 @@ First, we need to deploy a Jenkins instance to the widgetfactory project. Deploy
 oc new-app jenkins-ephemeral -p MEMORY_LIMIT=1Gi
 ```
 
-It won't be necessary to log into Jenkins, but if you want to log in and explore, your login credentials will be the same as your OpenShift login.
+Your login credentials to Jenkins will be the same as your `$OCP_USER` and `$OCP_PASS` credentials.
 
 ### 7.2 Create the jenkins-agent-ansible Imagestream
 The WidgetFactory pipeline depends on a build agent called `jenkins-agent-ansible`. The agent will be used to run a playbook that deploys the WidgetFactory resources to the environment.
@@ -226,7 +221,7 @@ The agent has already been built and pushed to Quay.
 
 We can make Jenkins aware of this build agent by creating an imagestream with a label `role=jenkins-slave`. Let's create this imagestream with:
 ```bash
-oc process -f $LAB/jenkins-agent-ansible/imagestream.yml | oc apply -f -
+oc process -f $LAB/jenkins-agent-ansible/imagestream.yml --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
 ```
 
 ### 7.3 Review Application
@@ -240,7 +235,7 @@ The various OpenShift Applier files for WidgetFactory are under `$LAB/widget-fac
 ### 7.5 Deploy Application
 Now that the Ansible agent is created and the Jenkins pod is up and running, we're now ready to deploy our application:
 ```bash
-oc process -f widget-factory/widget-pipeline.yml --param=SOURCE_REF=master | oc apply -f -
+oc process -f widget-factory/widget-pipeline.yml --param=SOURCE_REF=master --param DATABASE_HOST=mysql --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
 oc start-build widget-factory-pipeline --follow
 ```
 
@@ -252,7 +247,7 @@ When the app started up, it persisted many different widgets to the MySQL instan
 ### 8.1 MysqlBackup Overview
 If you recall, the operator that we created earlier contains a role called `mysqlbackup`. This role is capable of taking both ad-hoc and timed hot, logical backups of the MySQL database. The backup is triggered when a `MysqlBackup` CR is created in the project. 
 
-Check out the `mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml` resource and notice its `spec:` stanza. Key/value pairs under `spec:` are defined as extra vars to the Ansible role. Notice how this CR has an `interval_minutes: 5` defined on its spec. This passes the `interval_minutes` var to the role, which tells Ansible to take a backup every x number of minutes. If you check out `$LAB/mysql-operator/roles/mysqlbackup/defaults/main.yml`, you'll find that the default value for this var is `0`, which means that the backup will not be timed but rather will be a single, ad-hoc backup.
+Check out the `mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml` resource and notice its `spec:` stanza. Key/value pairs under `spec:` are defined as extra vars to the Ansible role. Notice how this CR has an `interval_minutes: 10` defined on its spec. This passes the `interval_minutes` var to the role, which tells Ansible to take a backup every x number of minutes. If you check out `$LAB/mysql-operator/roles/mysqlbackup/defaults/main.yml`, you'll find that the default value for this var is `0`, which means that the backup will not be timed but rather will be a single, ad-hoc backup.
 
 For this lab, the `mysqlbackup` role will take each backup on a separate PVC.
 

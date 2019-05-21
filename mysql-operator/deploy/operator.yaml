@@ -15,7 +15,7 @@ spec:
       serviceAccountName: mysql-operator
       containers:
         - name: mysql-operator
-          image: quay.io/adewey/mysql-operator
+          image: OPERATOR_IMAGE
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE

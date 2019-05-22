@@ -133,9 +133,9 @@ Find the molecule playbooks:
 cd $LAB/mysql-operator/molecule
 ```
 
-The `default` folder contains assertions that are used to ensure that the observed state is also the desired state. The `test-cluster` folder contains the molecule config as well as the playbook that initializes the MySQL CR.
+The `defaults` folder contains assertions that are used to ensure that the observed state is also the desired state. The `test-cluster` folder contains the molecule config as well as the playbook that initializes the MySQL CR.
 
-Feel free to check out the `default/assert.yml` and `test-cluster/playbook.yml` plays. You'll find that it creates a Mysql CR, waits 2 minutes for it to become active, and then validates the deployment. If the database is healthy, we can assume that the operator is successfully doing its job.
+Feel free to check out the `defaults/assert.yml` and `test-cluster/playbook.yml` plays. You'll find that it creates a Mysql CR, waits 2 minutes for it to become active, and then validates the deployment. If the database is healthy, we can assume that the operator is successfully doing its job.
 
 ### 4.2 Build the Test Operator
 We need to turn the Ansible plays into a Docker image so that it can be deployed and tested on OpenShift. We also need to make sure we include the test artifacts that are normally excluded from the production image. We can do this easily with the operator-sdk tool.
@@ -270,7 +270,7 @@ Let's see this backup role in action! We'll use the MysqlBackup spec defined in 
 oc create -f $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
 ```
 
-This will create an OpenShift cronjob that is responsible for mounting a brand new PVC and using it to back up the database's current state. It will keep `max_backups` completed backup PVCs in your project (defined in the `defaults/` of the mysqlbackup role). Wait until the PVC is created and then continue to the next step. You can run `oc get pvc` to determine if the PVC has been created. By default, the backup PVC will be called `mysqlbackup`.
+This will create an OpenShift job that is responsible for mounting a brand new PVC and using it to back up the database's current state. It will keep `max_backups` completed backup PVCs in your project (defined in the `defaults/` of the mysqlbackup role). Wait until the PVC is created and then continue to the next step. You can run `oc get pvc` to determine if the PVC has been created. By default, the backup PVC will be called `mysqlbackup`.
 
 ## 9 Restore the MySQL Database
 Here, we'll try to simulate a disaster recovery scenario in which data is lost from the database and a restore operation must take place.

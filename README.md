@@ -27,7 +27,7 @@ You'll be assigned a number when we start the lab. Ssh into your environment wit
 
 ```bash
 export USER_NUMBER=<number>
-ssh -i ocpkey.pem ec2-user@bastion.workshop-day1-vm$USER_NUMBER.example.opentlc.com
+ssh -i ocpkey.pem ec2-user@bastion.workshop-day2-vm$USER_NUMBER.example.opentlc.com
 sudo -i
 ```
 

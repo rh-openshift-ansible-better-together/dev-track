@@ -15,9 +15,7 @@ There are a few different tools you need in order to complete the lab:
 - git
 - oc
 
-We've provided an environment for you that already has these tools installed and ready to go, which we strongly recommend using because the lab instructions were written based off of it.
-
-You'll need the private key to ssh into the VM. Download the key with:
+We've provided a VM for you that we recommend using to complete the lab. You'll need the private key to ssh into the VM. Download the key with:
 ```bash
 curl -O https://s3.us-east-2.amazonaws.com/adeweylab/ocpkey.pem
 chmod 400 ocpkey.pem
@@ -27,14 +25,16 @@ You'll be assigned a number when we start the lab. Ssh into your environment wit
 
 ```bash
 export USER_NUMBER=<number>
-ssh -i ocpkey.pem ec2-user@bastion.workshop-day2-vm$USER_NUMBER.example.opentlc.com
+ssh -i ocpkey.pem ec2-user@clientvm.awksp$USER_NUMBER.example.opentlc.com
 sudo -i
 ```
 
-After you SSH or set up your environment locally, you should clone this repo:
+After you SSH into the VM, you should clone this repo and run the `install.sh` script to install the required tools for this lab:
 ```bash
 cd ~
 git clone https://github.com/rh-openshift-ansible-better-together/dev-track.git
+chmod 700 dev-track/install.sh
+./dev-track/install.sh
 ```
 
 Set an environment variable to reference the examples in this workshop:
@@ -46,10 +46,10 @@ export LAB="/root/dev-track"
 You'll need to log into OpenShift with the `oc` tool to talk to the cluster from the command line. You'll also want to log into the UI.
 Log in using `oc`. When prompted with the user, provide the username that you were assigned. Your username is `user$USER_NUMBER`, so if you were assigned user 1, your username would be `user1`. For the password, enter `r3dh4t1!`.
 ```bash
-oc login https://api.cluster-52a2.52a2.ocp4.opentlc.com:6443
+oc login https://api.cluster-ad9d.ad9d.ocp4.opentlc.com:6443
 ```
 
-Log into the UI by following this link http://console-openshift-console.apps.cluster-52a2.52a2.ocp4.opentlc.com. The login credentials are the same here as they were for `oc`.
+Log into the UI by following this link http://console-openshift-console.apps.cluster-ad9d.ad9d.ocp4.opentlc.com. The login credentials are the same here as they were for `oc`.
 
 Set an environment variable to reference your username throughout this lab:
 ```bash

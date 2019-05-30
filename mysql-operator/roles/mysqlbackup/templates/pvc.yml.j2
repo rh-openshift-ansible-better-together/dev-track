@@ -9,7 +9,11 @@ metadata:
   namespace: {{ namespace }}
   labels:
     app: {{ name }}
+{% if interval_minutes == 0 %}
     role: backup
+{% else %}
+    role: scheduledbackup
+{% endif %}
 spec:
   accessModes:
   - ReadWriteOnce

@@ -109,7 +109,7 @@
         kind: PersistentVolumeClaim
         namespace: "{{ namespace }}"
         label_selectors:
-          - role = backup
+          - role = scheduledbackup
       register: backup_pvc_list
 
     - name: Sort PVC list by date

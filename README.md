@@ -76,7 +76,7 @@ By the end of this section you should have two repositories in Quay under your a
 Set an environment variable to reference your Quay account:
 ```bash
 export QUAY_USER=<quay-user>
-export QUAY_PASS=<quay-password>
+printf "Quay Password: " ; read -sr QUAY_PASS_IN ; export QUAY_PASS=$QUAY_PASS_IN ; echo
 ```
 
 ## 3 Review the Ansible Operator

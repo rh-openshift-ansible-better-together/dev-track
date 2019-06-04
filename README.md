@@ -244,7 +244,7 @@ The various OpenShift Applier files for WidgetFactory are under `$LAB/widget-fac
 ### 7.5 Deploy Application
 Now that the Ansible agent is created and the Jenkins pod is up and running, we're now ready to deploy our application:
 ```bash
-oc process -f widget-factory/widget-pipeline.yml --param=SOURCE_REF=master --param DATABASE_HOST=mysql --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
+oc process -f $LAB/widget-factory/widget-pipeline.yml --param=SOURCE_REF=master --param DATABASE_HOST=mysql --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
 oc start-build widget-factory-pipeline
 ```
 
@@ -283,7 +283,7 @@ oc rsh deployment/mysql
 
 Once inside the pod, delete some data with:
 ```bash
-mysql -h localhost -u admin -padmin123 widgetfactory -e "DROP TABLE widget"
+mysql -h localhost -u admin -p admin123 widgetfactory -e "DROP TABLE widget"
 exit
 ```
 

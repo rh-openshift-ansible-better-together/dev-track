@@ -283,7 +283,7 @@ oc rsh deployment/mysql
 
 Once inside the pod, delete some data with:
 ```bash
-mysql -h localhost -u admin -p admin123 widgetfactory -e "DROP TABLE widget"
+mysql -h localhost -u admin -padmin123 widgetfactory -e "DROP TABLE widget"
 exit
 ```
 

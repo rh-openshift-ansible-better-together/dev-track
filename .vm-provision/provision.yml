@@ -1,0 +1,20 @@
+---
+- name: Provision client VMs
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: Provision a set of instances
+      ec2:
+        key_name: labs
+        group: ssh-all
+        instance_type: t2.medium
+        image: ami-0f2b4fc905b0bd1f1
+        wait: true
+        exact_count: 1
+        count_tag:
+          Type: Workshop
+        instance_tags:
+          Type: Workshop
+        region: us-east-2
+      register: ec2

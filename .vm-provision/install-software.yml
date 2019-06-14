@@ -1,0 +1,86 @@
+---
+- name: Install Software
+  hosts: all
+  remote_user: centos
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "/usr/bin/python"
+  tasks:
+    - name: Check for Python
+      raw: test -e /usr/bin/python
+      changed_when: false
+      failed_when: false
+      register: check_python
+
+    - name: Install Python
+      become: yes
+      raw: yum -y install python3
+      when: check_python.rc != 0
+
+    - name: Install Ansible
+      become: yes
+      yum:
+        name: ansible
+        state: present
+
+    - name: Install Docker
+      become: yes
+      yum:
+        name: docker
+        state: present
+
+    - name: Start and Enable Docker
+      become: yes
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install git
+      become: yes
+      yum:
+        name: git
+        state: present
+
+    - name: Download operator-sdk
+      become: yes
+      get_url:
+        url: "https://github.com/operator-framework/operator-sdk/releases/download/v0.5.0/operator-sdk-v0.5.0-x86_64-linux-gnu"
+        dest: "/usr/local/bin/operator-sdk"
+        mode: 0510
+        owner: centos
+        group: users
+
+    - name: Download oc
+      become: yes
+      get_url:
+        url: "https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.1"
+        dest: "/usr/local/bin/oc"
+        mode: 0510
+        owner: centos
+        group: users
+ 
+    - name: Create users group
+      become: yes
+      group:
+        name: users
+        state: present
+
+    - name: Create docker group
+      become: yes
+      group:
+        name: docker
+        state: present
+
+    - name: Add user to docker users group
+      become: yes
+      user:
+        name: centos
+        append: yes
+        groups: docker,users
+
+    - name: Restart docker
+      become: yes
+      service:
+        name: docker
+        state: restarted

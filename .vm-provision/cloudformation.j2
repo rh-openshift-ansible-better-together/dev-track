@@ -14,6 +14,8 @@ Resources:
           Value: {{ city }}vm{{ i }}
         - Key: Type
           Value: Workshop
+        - Key: City
+          Value: {{ city }}
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:

@@ -53,6 +53,7 @@
             filters:
               instance-state-name:
                 - running
+              "tag:City": "{{ city }}"
           register: ec2_facts
 
         - name: Add ec2 instances to ec2_hosts group

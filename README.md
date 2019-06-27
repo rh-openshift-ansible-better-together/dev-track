@@ -48,7 +48,7 @@ See the table below for your location's cluster information.
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
 | Houston | https://api.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com |
-| Nashville | https://api.cluster-dfca.dfca.ocp4.opentlc.com:6443 | https://console-openshift-console.apps.better-together.adeweylab.com |
+| Nashville | https://api.cluster-dfca.dfca.ocp4.opentlc.com:6443 | https://console-openshift-console.apps.cluster-dfca.dfca.ocp4.opentlc.com |
 
 Log in using `oc` by authenticating against the API Server. When prompted for the user, provide the username that you were assigned. Your username is `user$USER_NUMBER`, so if you were assigned user 1, your username would be `user1`. For the password, enter `r3dh4t1!`.
 ```bash

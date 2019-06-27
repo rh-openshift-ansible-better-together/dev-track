@@ -15,51 +15,63 @@ There are a few different tools you need in order to complete the lab:
 - git
 - oc
 
-We've provided a VM for you that we recommend using to complete the lab. You'll need the private key to ssh into the VM. Download the key with:
+We've provided a VM for you that we recommend using to complete the lab that comes with the required tooling already installed. You'll need the private key to ssh into the VM. Download the key with:
 ```bash
-curl -O https://s3.us-east-2.amazonaws.com/adeweylab/ocpkey.pem
-chmod 400 ocpkey.pem
+curl -O https://s3.us-east-2.amazonaws.com/adeweylab/clientvm.pem
+chmod 400 clientvm.pem
 ```
 
-You'll be assigned a number when we start the lab. Ssh into your environment with
-
+You'll be assigned a number when we start the lab. Set an environment variable to reference the number for SSH:
 ```bash
 export USER_NUMBER=<number>
-ssh -i ocpkey.pem ec2-user@clientvm.tcbtl$USER_NUMBER.example.opentlc.com
-sudo -i
 ```
 
-After you SSH into the VM, you should clone this repo and run the `install.sh` script to install the required tools for this lab:
+There are two sessions of the Better Together workshop today. The hostname of your VM depends on the location you are in. SSH into the VM using the directions from the table below.
+
+| Location | SSH Command |
+| -------- | ----------- |
+| Houston | ssh -i clientvm.pem centos@houstonvm$USER_NUMBER.adeweylab.com |
+| Nashville | ssh -i clientvm.pem centos@nashvillevm$USER_NUMBER.adeweylab.com |
+
+After you SSH into the VM, clone this repo and set an environment variable to reference examples used throughout this workshop.
 ```bash
 cd ~
 git clone https://github.com/rh-openshift-ansible-better-together/dev-track.git
-chmod 700 dev-track/install.sh
-./dev-track/install.sh
-```
-
-Set an environment variable to reference the examples in this workshop:
-```bash
-export LAB="/root/dev-track"
+export LAB="/home/centos/dev-track"
 ```
 
 ### 1.1 Log in to OpenShift
 You'll need to log into OpenShift with the `oc` tool to talk to the cluster from the command line. You'll also want to log into the UI.
-Log in using `oc`. When prompted with the user, provide the username that you were assigned. Your username is `user$USER_NUMBER`, so if you were assigned user 1, your username would be `user1`. For the password, enter `r3dh4t1!`.
+
+See the table below for your location's cluster information.
+
+| Location | API Server | Web Console |
+| -------- | ---------- | ----------- |
+| Houston | https://api.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com |
+| Nashville | https://api.cluster-dfca.dfca.ocp4.opentlc.com:6443 | https://console-openshift-console.apps.better-together.adeweylab.com |
+
+Log in using `oc` by authenticating against the API Server. When prompted for the user, provide the username that you were assigned. Your username is `user$USER_NUMBER`, so if you were assigned user 1, your username would be `user1`. For the password, enter `r3dh4t1!`.
 ```bash
-oc login https://api.better-together.adeweylab.com:6443
+oc login $API_SERVER # Referenced above
 ```
 
-Log into the UI by following this link https://console-openshift-console.apps.better-together.adeweylab.com. The login credentials are the same here as they were for `oc`.
+Log into the UI by following your location's corresponding Web Console link from the table above. The login credentials are the same here as they were for `oc`.
 
 Set an environment variable to reference your username throughout this lab:
 ```bash
-export OCP_USER=<assigned-username>
+export OCP_USER=<assigned-username> # For example, user60
 ```
 
 ### 1.2 Create OpenShift Project
 You'll need to create an OpenShift project to perform the lab in. Create a project with:
 ```bash
 oc new-project $OCP_USER
+```
+
+### 1.3 Deploy Jenkins
+Later in this workshop, we will use Jenkins to deploy the WidgetFactory app using a CI/CD pipeline. Because the Jenkins server can take some time to become ready, let's spin it up ahead of time. We'll come back to Jenkins when we deploy WidgetFactory.
+```bash
+oc new-app jenkins-ephemeral -p MEMORY_LIMIT=2Gi
 ```
 
 ## 2 Create Quay Account and Repositories
@@ -213,17 +225,7 @@ When the role is finished, you should see something like `ansible-runner exited 
 ## 7 Deploy the WidgetFactory application
 One thing that OpenShift excels at, among many, is integration with Jenkins to provide a CI/CD platform. We can leverage Jenkins and Ansible together to build the WidgetFactory application and deploy it to OpenShift.
 
-### 7.1 Deploy Jenkins
-OpenShift provides a `JenkinsPipeline` build strategy that creates a Jenkins pipeline for CI/CD pipeline builds. We'll use this build strategy to build and deploy the WidgetFactory application.
-
-First, we need to deploy a Jenkins instance to the widgetfactory project. Deploy a Jenkins instance with:
-```bash
-oc new-app jenkins-ephemeral -p MEMORY_LIMIT=2Gi
-```
-
-Your login credentials to Jenkins will be the same as your `$OCP_USER` and `r3dh4t1!` credentials.
-
-### 7.2 Create the jenkins-agent-ansible Imagestream
+### 7.1 Create the jenkins-agent-ansible Imagestream
 The WidgetFactory pipeline depends on a build agent called `jenkins-agent-ansible`. The agent will be used to run a playbook that deploys the WidgetFactory resources to the environment.
 
 The agent has already been built and pushed to Quay.
@@ -233,26 +235,22 @@ We can make Jenkins aware of this build agent by creating an imagestream with a 
 oc process -f $LAB/jenkins-agent-ansible/imagestream.yml --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
 ```
 
-### 7.3 Review Application
+### 7.2 Review Application
 The WidgetFactory application code is under `widget-factory/`. It's a simple spring-data service. One controller is set up as a `spring-data-rest` interface that autoconfigures CRUD operations on our `Widget` object. There is also a second controller that allows for building more custom queries.
 
-### 7.4 Ansible OpenShift Applier
+### 7.3 Ansible OpenShift Applier
 The WidgetFactory pipeline makes use of an Ansible role called the [OpenShift-Applier](https://github.com/redhat-cop/openshift-applier). The OpenShift Applier role is used to process and apply OpenShift templates. It's a useful Ansible role that allows you to specify all of your app's requirements in an OpenShift template and then leverage Ansible to supply parameters to the templates and apply them.
 
 The various OpenShift Applier files for WidgetFactory are under `$LAB/widget-factory/.applier`. You can find all of the parameters the template expects under `group_vars/all.yml`. The Jenkins pipeline will pass in the extra vars when the ansible-playbook command is run.
 
-### 7.5 Deploy Application
+### 7.4 Deploy Application
 Now that the Ansible agent is created and the Jenkins pod is up and running, we're now ready to deploy our application:
 ```bash
 oc process -f $LAB/widget-factory/widget-pipeline.yml --param=SOURCE_REF=master --param DATABASE_HOST=mysql --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
 oc start-build widget-factory-pipeline
 ```
 
-To view the build's progress, expand `Builds` on the sidebar in the OpenShift UI and click `Builds` underneath that. Click on the widget-factory pipeline. You'll probably find that it is still pending and that there are no build logs displayed. This simply means that Jenkins is not ready yet, and when it is, the build will start and logs will display (you should see `View Logs` underneath the build number).
-
-Click the `View Logs` link once it appears in the UI (it will appear under the build number). You'll need to confirm the security exception and log into Jenkins. The credentials are the same as your OpenShift username and password. Note that this may take a few minutes as Jenkins is running preliminary tasks.
-
-When you log into Jenkins, you should immediately be taken to the Jenkins build. This build is building the Java application with maven and deploying the WidgetFactory application with Ansible. You can expect this build to take around 5 minutes.
+To view the build's progress, expand `Builds` on the sidebar in the OpenShift UI and click `Builds` underneath that. Click on the widget-factory pipeline. You should begin to see a pipeline displaying the progress of the build. If you don't see any progress, allow Jenkins a minute to provision its agent pod.
 
 When the app starts up, it persists many different widgets to the MySQL instance we created earlier. Let's return our focus back to the Ansible operator to perform a backup of the database.
 

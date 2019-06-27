@@ -50,17 +50,18 @@ See the table below for your location's cluster information.
 | Houston | https://api.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com |
 | Nashville | https://api.cluster-dfca.dfca.ocp4.opentlc.com:6443 | https://console-openshift-console.apps.better-together.adeweylab.com |
 
+Set an environment variable to reference your username and API Server:
+```bash
+export OCP_USER=<assigned-username> # For example, user60
+export API_SERVER=<api-server>      # Referenced in the above table
+```
+
 Log in using `oc` by authenticating against the API Server. When prompted for the user, provide the username that you were assigned. Your username is `user$USER_NUMBER`, so if you were assigned user 1, your username would be `user1`. For the password, enter `r3dh4t1!`.
 ```bash
-oc login $API_SERVER # Referenced above
+oc login $API_SERVER --username=$OCP_USER --password='r3dh4t1!'
 ```
 
 Log into the UI by following your location's corresponding Web Console link from the table above. The login credentials are the same here as they were for `oc`.
-
-Set an environment variable to reference your username throughout this lab:
-```bash
-export OCP_USER=<assigned-username> # For example, user60
-```
 
 ### 1.2 Create OpenShift Project
 You'll need to create an OpenShift project to perform the lab in. Create a project with:

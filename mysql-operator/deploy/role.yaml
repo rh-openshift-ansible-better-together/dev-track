@@ -8,42 +8,55 @@ rules:
   resources:
   - pods
   - services
+  - endpoints
   - persistentvolumeclaims
-  - secrets
+  - events
   - configmaps
+  - secrets
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - '*'
 - apiGroups:
   - apps
   resources:
   - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - '*'
 - apiGroups:
-  - batch
+  - monitoring.coreos.com
   resources:
-  - jobs
-  - cronjobs
+  - servicemonitors
   verbs:
-  - create
-  - delete
   - get
-  - list
-  - patch
+  - create
+- apiGroups:
+  - apps
+  resourceNames:
+  - mysql-operator
+  resources:
+  - deployments/finalizers
+  verbs:
   - update
-  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+- apiGroups:
+  - lab.redhat.com
+  resources:
+  - '*'
+  verbs:
+  - '*'
 - apiGroups:
   - lab.redhat.com
   resources:

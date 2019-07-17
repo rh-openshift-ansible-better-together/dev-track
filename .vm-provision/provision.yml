@@ -62,7 +62,7 @@
             group: ec2_hosts
             ansible_connection: ssh
             ansible_user: centos
-            ansible_ssh_private_key_file: "/Users/fmontero/Ansible/BetterTogether.pem"
+            ansible_ssh_private_key_file: "$HOME/Ansible/BetterTogether.pem"
           loop: "{{ ec2_facts.instances }}"
       when: state == "present"
 

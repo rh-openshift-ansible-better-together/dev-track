@@ -1,4 +1,6 @@
-## TODO: Add custom resource vars
+# Discovered from CustomResource metadata
+name: "{{ meta.name | default('mysqlbackup') }}"
+namespace: "{{ meta.namespace | default('mysql') }}"
 
 # Mysql image vars
 registry_url: docker-registry.default.svc:5000

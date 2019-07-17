@@ -26,7 +26,7 @@ You'll be assigned a number when we start the lab. Set an environment variable t
 export USER_NUMBER=<number>
 ```
 
-There are two sessions of the Better Together workshop today. The hostname of your VM depends on the location you are in. SSH into the VM using the directions from the table below.
+SSH into the VM using the directions from the table below.
 
 | Location | SSH Command |
 | -------- | ----------- |

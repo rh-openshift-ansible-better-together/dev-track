@@ -1,0 +1,29 @@
+# Route 53 Zone ID #
+hosted_zone_id:
+
+# Route 53 Hosted Zone Name
+subdomain_base:
+
+# EC2 Security Group
+security_group_id:
+
+# ID of the subnet where ec2 instances will reside
+subnet_id:
+
+# PEM Key
+key_name:
+
+# City where BT will be hosted
+city:
+
+# How many Client VMs
+num_instances:
+
+# CentOS 7 AMI
+image_id: ami-02eac2c0129f6376b
+
+# Red Hat RHEL-7 AMI
+#image_id: ami-0240b09539b9692a0
+
+# Deploy (present) ec2 instances or Delete (absent) ec2 instances
+state: present

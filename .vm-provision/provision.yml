@@ -3,35 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: False
-  # Pass in as extra vars to skip vars_prompt
-  vars_prompt:
-    - name: hosted_zone_id
-      prompt: "Route53 hosted zone id"
-      private: no
-
-    - name: subdomain_base
-      prompt: "Route53 subdomain (ex: example.com)"
-      private: no
-
-    - name: security_group_id
-      prompt: "Name of security group"
-      private: no
-
-    - name: key_name
-      prompt: "Name of ec2 key pair to use"
-      private: no
-
-    - name: city
-      prompt: "Workshop city"
-      private: no
-
-    - name: num_instances
-      prompt: "Number of instances to provision"
-      private: no
-
-    - name: state
-      prompt: "Cloudformation state (present/absent)"
-      private: no
+  vars_files:
+    - vars/aws.yml
   tasks:
     - name: Set cloudformation state to {{ state }}
       cloudformation:

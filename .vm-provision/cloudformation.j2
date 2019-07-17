@@ -4,9 +4,10 @@ Resources:
   {{ city }}vm{{ i }}:
     Type: "AWS::EC2::Instance"
     Properties:
-      ImageId: ami-0f2b4fc905b0bd1f1 #Centos 7 AMI
+      ImageId: {{ image_id}}
       InstanceType: t2.medium
       KeyName: {{ key_name }}
+      SubnetId: {{ subnet_id }}
       SecurityGroupIds:
         - {{ security_group_id }}
       Tags:
@@ -19,7 +20,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:
-            VolumeSize: "8"
+            VolumeSize: "10"
 
   {{ city }}vm{{ i }}PublicDNS:
     Type: "AWS::Route53::RecordSetGroup"

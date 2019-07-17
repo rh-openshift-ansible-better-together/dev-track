@@ -17,8 +17,8 @@ There are a few different tools you need in order to complete the lab:
 
 We've provided a VM for you that we recommend using to complete the lab that comes with the required tooling already installed. You'll need the private key to ssh into the VM. Download the key with:
 ```bash
-curl -O https://s3.us-east-2.amazonaws.com/adeweylab/clientvm.pem
-chmod 400 clientvm.pem
+curl -O https://s3.amazonaws.com/bettertogether.openshift-is-awesome.com/BetterTogether.pem
+chmod 400 BetterTogether.pem
 ```
 
 You'll be assigned a number when we start the lab. Set an environment variable to reference the number for SSH:
@@ -30,8 +30,7 @@ There are two sessions of the Better Together workshop today. The hostname of yo
 
 | Location | SSH Command |
 | -------- | ----------- |
-| Houston | ssh -i clientvm.pem centos@houstonvm$USER_NUMBER.adeweylab.com |
-| Nashville | ssh -i clientvm.pem centos@nashvillevm$USER_NUMBER.adeweylab.com |
+| Atlanta | ssh -i BetterTogether.pem centos@atlantavm$USER_NUMBER.openshift-is-awesome.com |
 
 After you SSH into the VM, clone this repo and set an environment variable to reference examples used throughout this workshop.
 ```bash
@@ -47,8 +46,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Houston | https://api.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-a7e2-5c33.a7e2-5c33.openshiftworkshop.com |
-| Nashville | https://api.cluster-dfca.dfca.ocp4.opentlc.com:6443 | https://console-openshift-console.apps.better-together.adeweylab.com |
+| Atlanta | https://api.cluster-<TBD>.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-<TBD>.openshiftworkshop.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

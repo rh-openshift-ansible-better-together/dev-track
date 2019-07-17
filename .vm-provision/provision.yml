@@ -62,8 +62,13 @@
             group: ec2_hosts
             ansible_connection: ssh
             ansible_user: centos
-            ansible_ssh_private_key_file: "~/.ssh/labs.pem"
+            ansible_ssh_private_key_file: "/Users/fmontero/Ansible/BetterTogether.pem"
           loop: "{{ ec2_facts.instances }}"
+      when: state == "present"
+
+    - name: Pause for 90 seconds while the ec2 instance(s) become(s) SSH ready
+      pause:
+        seconds: 90
       when: state == "present"
 
 - name: Install required tooling on client vms

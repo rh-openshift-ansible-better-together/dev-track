@@ -1,36 +1,85 @@
 ---
-- name: Install software on client VMs
+- name: Install python3 to host
+  hosts: ec2_hosts
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Install python3
+      raw: yum -y install python3
+
+- name: Install Software on Client VMs
   hosts: ec2_hosts
   become: yes
   tasks:
-    - name: Install docker
+    - name: Install git
       package:
-        name: docker
+        name: git
         state: present
 
-    - name: Create docker group
-      group:
-        name: docker
+    - name: Install buildah
+      package:
+        name: buildah
         state: present
 
-    - name: Add user to docker group
-      user:
-        name: centos
-        groups: docker
-        append: yes
+    - name: Install ansible
+      pip:
+        name: ansible
+        state: present
 
-    - name: Start and enable docker
-      service:
-        name: docker
-        enabled: true
-        state: started
+    - name: Install gcc
+      package:
+        name: gcc
+        state: present
+
+    - name: Install python3-devel
+      package:
+        name: python3-devel
+        state: present
+
+    - name: Install molecule
+      pip:
+        name: molecule
+        state: present
+
+    - name: Install openshift module
+      pip:
+        name: openshift
+        state: present
+
+    - name: Install ansible-runner
+      pip:
+        name: ansible-runner
+        state: present
+
+    - name: Clone ansible-runner-http repo
+      git:
+        repo: https://github.com/ansible/ansible-runner-http
+        dest: /tmp/ansible-runner-http
+        force: yes
+
+    - name: Chmod setup.py script
+      file:
+        path: /tmp/ansible-runner-http/setup.py
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Run 'setup.py build'
+      command: python3 setup.py build
+      args:
+        chdir: /tmp/ansible-runner-http
+
+    - name: Run 'setup.py install'
+      command: python3 setup.py install
+      args:
+        chdir: /tmp/ansible-runner-http
 
     - name: Download operator-sdk
       get_url:
-        url: https://github.com/operator-framework/operator-sdk/releases/download/v0.7.1/operator-sdk-v0.7.1-x86_64-linux-gnu
-        dest: /usr/local/bin/operator-sdk
-        owner: centos
-        group: centos
+        url: https://github.com/operator-framework/operator-sdk/releases/download/v0.9.0/operator-sdk-v0.9.0-x86_64-linux-gnu
+        dest: /usr/bin/operator-sdk
+        owner: ec2-user
+        group: ec2-user
         mode: 0110
 
     - name: Download openshift client
@@ -42,14 +91,8 @@
     - name: Extract openshift client
       unarchive:
         src: /tmp/oc.tar.gz
-        dest: /usr/local/bin
+        dest: /usr/bin
         remote_src: yes
-        owner: centos
-        group: centos
+        owner: ec2-user
+        group: ec2-user
         mode: 0110
-
-    - name: Install git
-      package:
-        name: git
-        state: present
-

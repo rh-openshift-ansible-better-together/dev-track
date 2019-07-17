@@ -4,7 +4,7 @@ Resources:
   {{ city }}vm{{ i }}:
     Type: "AWS::EC2::Instance"
     Properties:
-      ImageId: ami-0f2b4fc905b0bd1f1 #Centos 7 AMI
+      ImageId: ami-0520e698dd500b1d1 #RHEL8 AMI
       InstanceType: t2.medium
       KeyName: {{ key_name }}
       SecurityGroupIds:
@@ -19,7 +19,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:
-            VolumeSize: "8"
+            VolumeSize: "10" # Must be >= 10 for RHEL8 AMI
 
   {{ city }}vm{{ i }}PublicDNS:
     Type: "AWS::Route53::RecordSetGroup"

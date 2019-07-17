@@ -1,0 +1,91 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+  vars:
+    deploy_dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/deploy"
+    tmp_operator: "/tmp/operator.yaml"
+    mysql_custom_resource: "{{ lookup('file', '/'.join([deploy_dir, 'crds/mysql/mysql_cr.yaml'])) | from_yaml }}"
+  tasks:
+    - block:
+      - name: Copy operator.yaml to /tmp
+        copy:
+          src: "{{ deploy_dir }}/operator.yaml"
+          dest: "{{ tmp_operator }}"
+
+      - name: Replace OPERATOR_IMAGE with {{ operator_image }}
+        lineinfile:
+          path: "{{ tmp_operator }}"
+          line: "          image: {{ operator_image }}"
+          regex: "         image: OPERATOR_IMAGE"
+
+      - name: Create MySQL Operator
+        k8s:
+          state: present
+          namespace: "{{ namespace }}"
+          definition: "{{ lookup('file', tmp_operator) }}"
+
+      - name: Create the Mysql resource
+        k8s:
+          state: present
+          namespace: '{{ namespace }}'
+          definition: "{{ mysql_custom_resource }}"
+
+      - name: Wait 120s for reconciliation to run
+        k8s_facts:
+          api_version: '{{ mysql_custom_resource.apiVersion }}'
+          kind: '{{ mysql_custom_resource.kind }}'
+          namespace: '{{ namespace }}'
+          name: '{{ mysql_custom_resource.metadata.name }}'
+        register: cr
+        until:
+        - "'Successful' in (cr | json_query('resources[].status.conditions[].reason'))"
+        delay: 6
+        retries: 20
+
+      - name: Get Mysql deployment
+        k8s_facts:
+          api_version: 'apps/v1'
+          kind: 'Deployment'
+          namespace: '{{ namespace }}'
+          name: '{{ mysql_custom_resource.metadata.name }}'
+        register: mysql_deployment
+
+      - name: Ensure that database is ready
+        assert:
+          that: mysql_deployment.resources[0].status.readyReplicas == 1
+
+      rescue:
+      - name: Debug MySQL CR
+        ignore_errors: yes
+        failed_when: true
+        debug:
+          msg: '{{ lookup("k8s",
+            kind=mysql_custom_resource.kind,
+            api_version=mysql_custom_resource.apiVersion,
+            namespace=namespace,
+            resource_name=mysql_custom_resource.metadata.name
+          )}}'
+
+      - name: Get MySQL Operator Logs
+        ignore_errors: yes
+        failed_when: true
+        command: oc logs deployment/{{ definition.metadata.name }} -n {{ namespace }}
+        vars:
+          definition: "{{ lookup('file', tmp_operator) | from_yaml }}"
+
+      - fail:
+          msg: "Failed on action: converge"
+
+      always:
+      - name: Delete MySQL Server
+        k8s:
+          state: absent
+          definition: "{{ mysql_custom_resource }}"
+          namespace: "{{ namespace }}"
+
+      - name: Delete MySQL Operator
+        k8s:
+          state: absent
+          definition: "{{ lookup('file', tmp_operator) }}"
+          namespace: "{{ namespace }}"

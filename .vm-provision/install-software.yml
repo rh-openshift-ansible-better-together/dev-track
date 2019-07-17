@@ -27,7 +27,7 @@
 
     - name: Download operator-sdk
       get_url:
-        url: https://github.com/operator-framework/operator-sdk/releases/download/v0.7.1/operator-sdk-v0.7.1-x86_64-linux-gnu
+        url: https://github.com/operator-framework/operator-sdk/releases/download/v0.9.0/operator-sdk-v0.9.0-x86_64-linux-gnu
         dest: /usr/local/bin/operator-sdk
         owner: centos
         group: centos
@@ -53,3 +53,76 @@
         name: git
         state: present
 
+    - name: Install epel-release
+      package:
+        name: epel-release
+        state: present
+
+    - name: Install pip
+      package:
+        name: python2-pip
+        state: present
+
+    - name: Install ansible
+      pip:
+        name: ansible
+        state: present
+
+    - name: Install gcc
+      package:
+        name: gcc
+        state: present
+
+    - name: Install python2-devel
+      package:
+        name: python2-devel
+        state: present
+
+    - name: Install molecule
+      pip:
+        name: molecule
+        state: present
+        extra_args: "--ignore-installed PyYAML"
+
+    - name: Install kubernetes module
+      pip:
+        name: kubernetes
+        state: present
+
+    - name: Install openshift module
+      pip:
+        name: openshift
+        state: present
+      
+    - name: Install jmespath module
+      pip:
+        name: jmespath
+        state: present
+
+    - name: Install ansible-runner
+      pip:
+        name: ansible-runner
+        state: present
+
+    - name: Clone ansible-runner-http repo
+      git:
+        repo: https://github.com/ansible/ansible-runner-http
+        dest: /tmp/ansible-runner-http
+        force: yes
+
+    - name: Chmod setup.py script
+      file:
+        path: /tmp/ansible-runner-http/setup.py
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Run 'setup.py build'
+      command: python setup.py build
+      args:
+        chdir: /tmp/ansible-runner-http
+
+    - name: Run 'setup.py install'
+      command: python setup.py install
+      args:
+        chdir: /tmp/ansible-runner-http

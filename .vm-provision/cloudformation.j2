@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+{% for i in range(1, (num_instances | int) + 1) %}
+  {{ city }}vm{{ i }}:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: ami-0f2b4fc905b0bd1f1 #Centos 7 AMI
+      InstanceType: t2.medium
+      KeyName: {{ key_name }}
+      SecurityGroupIds:
+        - {{ security_group_id }}
+      Tags:
+        - Key: Name
+          Value: {{ city }}vm{{ i }}
+        - Key: Type
+          Value: Workshop
+        - Key: City
+          Value: {{ city }}
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: "8"
+
+  {{ city }}vm{{ i }}PublicDNS:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      HostedZoneId: "{{ hosted_zone_id }}"
+      RecordSets:
+        - Name: "{{ city }}vm{{ i }}.{{ subdomain_base }}."
+          Type: A
+          TTL: 10
+          ResourceRecords:
+            - "Fn::GetAtt":
+                - {{ city }}vm{{ i }}
+                - PublicIp
+{% endfor %}

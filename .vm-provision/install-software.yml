@@ -1,0 +1,55 @@
+---
+- name: Install software on client VMs
+  hosts: ec2_hosts
+  become: yes
+  tasks:
+    - name: Install docker
+      package:
+        name: docker
+        state: present
+
+    - name: Create docker group
+      group:
+        name: docker
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: centos
+        groups: docker
+        append: yes
+
+    - name: Start and enable docker
+      service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Download operator-sdk
+      get_url:
+        url: https://github.com/operator-framework/operator-sdk/releases/download/v0.7.1/operator-sdk-v0.7.1-x86_64-linux-gnu
+        dest: /usr/local/bin/operator-sdk
+        owner: centos
+        group: centos
+        mode: 0110
+
+    - name: Download openshift client
+      get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.1/linux/oc.tar.gz
+        dest: /tmp/oc.tar.gz
+        mode: 0500
+
+    - name: Extract openshift client
+      unarchive:
+        src: /tmp/oc.tar.gz
+        dest: /usr/local/bin
+        remote_src: yes
+        owner: centos
+        group: centos
+        mode: 0110
+
+    - name: Install git
+      package:
+        name: git
+        state: present
+

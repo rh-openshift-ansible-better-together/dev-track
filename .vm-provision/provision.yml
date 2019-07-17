@@ -1,0 +1,70 @@
+---
+- name: Provision client VMs
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  # Pass in as extra vars to skip vars_prompt
+  vars_prompt:
+    - name: hosted_zone_id
+      prompt: "Route53 hosted zone id"
+      private: no
+
+    - name: subdomain_base
+      prompt: "Route53 subdomain (ex: example.com)"
+      private: no
+
+    - name: security_group_id
+      prompt: "Name of security group"
+      private: no
+
+    - name: key_name
+      prompt: "Name of ec2 key pair to use"
+      private: no
+
+    - name: city
+      prompt: "Workshop city"
+      private: no
+
+    - name: num_instances
+      prompt: "Number of instances to provision"
+      private: no
+
+    - name: state
+      prompt: "Cloudformation state (present/absent)"
+      private: no
+  tasks:
+    - name: Set cloudformation state to {{ state }}
+      cloudformation:
+        stack_name: "{{ city }}vms"
+        state: "{{ state }}"
+        template_body: "{{ lookup('template', 'cloudformation.j2') }}"
+
+    - name: Remove vm from known_hosts if state==absent
+      known_hosts:
+        name: "{{ city }}vm{{ item }}.{{ subdomain_base }}"
+        state: absent
+      loop: "{{ range(1, (num_instances | int) + 1) | list }}"
+      when: state == "absent"
+
+    - name: Create new group based on ec2 instances
+      block:
+        - name: Get ec2 facts
+          ec2_instance_facts:
+            filters:
+              instance-state-name:
+                - running
+              "tag:City": "{{ city }}"
+          register: ec2_facts
+
+        - name: Add ec2 instances to ec2_hosts group
+          add_host:
+            name: "{{ item.public_ip_address }}"
+            group: ec2_hosts
+            ansible_connection: ssh
+            ansible_user: centos
+            ansible_ssh_private_key_file: "~/.ssh/labs.pem"
+          loop: "{{ ec2_facts.instances }}"
+      when: state == "present"
+
+- name: Install required tooling on client vms
+  import_playbook: ./install-software.yml

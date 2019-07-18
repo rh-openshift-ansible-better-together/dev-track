@@ -97,8 +97,6 @@ The WidgetFactory app is a data-driven app that uses a MySQL database to store w
 
 An operator is an extention to the Kubernetes API. With an operator, we can deploy a `Mysql` custom resource (CR), and OpenShift will be able to understand what we mean and deploy all of the dependent resources automatically. In this case we'll also be able to deploy `MysqlBackup` and `MysqlRestore` resources as well. More on those below.
 
-The community provides many different operators supporting many different needs (see Catalog->OperatorHub for a list of all community operators). In this lab we'll learn to write our own operator with Ansible so we can create a custom operator catered specifically to our needs. After this lab, feel free to explore other operators in the community. There's a lot out there that showcase what else operators are able to provide.
-
 ### 3.2 Ansible Operator Structure
 Navigate to the `mysql-operator` directory:
 ```bash
@@ -117,7 +115,7 @@ Here you will see the file structure of an Ansible operator. Check out the [oper
 When the Ansible operator is deployed, it will listen for CRs and will apply the Ansible role accordingly. Operators are designed to maintain the "desired state", meaning it will run in a loop and will constantly re-run the roles in accordance to the CR spec to ensure that the desired state is always reached. Therefore, it's imperative that each role be written in an idempotant and stateless manner. It should also be able to handle any change to the OpenShift environment that may occur anywhere during role execution.
 
 ### 3.3 Review Ansible Roles
-Let's dive a little deeper into the actual Ansible code behind this operator. Find the `roles/` directory:
+Let's dive a little deeper into the Ansible roles behind this operator. Find the `roles/` directory:
 ```bash
 cd $LAB/mysql-operator/roles
 ```
@@ -129,16 +127,193 @@ Here you'll find three Ansible roles:
 | mysqlbackup | Initiate an ad-hoc or scheduled backup of the MySQL database |
 | mysqlrestore | Restore the database to a previous data backup |
 
-Each of these roles relies heavily on the `k8s`, `k8s_facts`, and `k8s_status` Ansible modules, which are leveraged in this lab to create OpenShift resources, get information on existing resources, and set CR statuses.
+## 4 Write the Ansible Operator
+Time to get a little more hands-on. We've left several placeholders throughout the operator for you to write some Ansible. Let's walk through the changes you'll have to make to allow the operator to be fully functional.
 
-Feel free to check out each role in greater detail. The cool thing about the Ansible operator is that, unsurprisingly, it's powered by Ansible Automation, which is designed to be easily read and understood. Unlike the [Go operator](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md), the Ansible operator does not require you to be a developer to start unlocking an operator's true potential.
+### 4.1 Finish the `mysql` Role
+View the `main.yml` tasks file under the `mysql` role:
+```bash
+cat $LAB/mysql-operator/roles/mysql/tasks/main.yml
+```
+Currently, the role is only generating a root password for the MySQL server if it is not passed in as an extra var through the MySQL custom resource. It doesn't yet deploy the MySQL server. Let's write some Ansible to deploy a MySQL server when a MySQL custom resource is created.
 
-When you're finished checking out each role, let's test the Ansible operator to make sure it will perform as expected.
+Under where it says `## TODO: Create MySQL Server`, add the following line:
+```yaml
+- name: Create resources for {{ name }} deployment
+```
+This is the name of the next task of the `mysql` role. It makes the Ansible code more readable by letting developers know what the task is supposed to do, and it makes runtime output easier for administrators to understand in the event of troubleshooting.
 
-## 4 Test the Ansible Operator
+Note also the `{{ name }}` string. This is a variable in Ansible, which is defined in `$LAB/mysql-operator/roles/mysql/defaults/main.yml`. When expanded, it will equal the name of the mysql custom resource.
+
+Let's add a couple more lines to the mysql role, so that your task now looks like this:
+```yaml
+- name: Create resources for {{ name }} deployment
+  k8s:
+    state: present
+    definition: "{{ lookup('template', item.name) | from_yaml }}"
+```
+
+Notice the `k8s:` line. This tells Ansible to use the `k8s` module to perform an action on the OpenShift cluster. Think of a module as a function, in which `k8s:` is our "function" and `state:` and `definition` are the parameters to that function.
+
+`state: present` tells the `k8s` module to create a resource to the cluster (as opposed to deleting it, which would instead be `state: absent`). `definition: ` tells the `k8s` module specifically what to create on the cluster. Let's add one more piece of code to complete this Ansible task to tie everything together. Add to the mysql role so that your task now looks like this:
+```yaml
+- name: Create resources for {{ name }} deployment
+  k8s:
+    state: present
+    definition: "{{ lookup('template', item) | from_yaml }}"
+  loop:
+    - secret.yml.j2
+    - service.yml.j2
+    - pvc.yml.j2
+    - deployment.yml.j2
+```
+
+The `loop:` stanza is a control function that tells Ansible to loop through each item in the list below it. It works kind of like a for-each loop in Java. It will name each iteration of the loop `item` and will pass it back up to the `definition: ` parameter of the `k8s` module. It will get interpreted by an Ansible lookup function called `template`, meaning that it will leverage a dependency called `jinja2` to template out each YAML file and create them to the OpenShift cluster.
+
+We'll talk more about the `jinja2` templating in the next example. For now, feel free to copy the answer over before continuing to the next section:
+```bash
+cp $LAB/answers/mysql/tasks/main.yml $LAB/mysql-operator/roles/mysql/tasks/
+```
+
+### 4.2 Finish the `mysqlbackup` Role
+Let's take a look at the `mysqlbackup` role again:
+```bash
+cat $LAB/mysql-operator/roles/mysqlbackup/tasks/main.yml
+```
+
+This is a lengthy role, but it should look quite familiar for the most part after learning more about the `k8s` module in the previous section. One important thing to note is the first task in the role, which reads:
+```yaml
+- name: Create ad-hoc mysqlbackup objects
+  k8s:
+    state: present
+    definition: "{{ lookup('template', item.name) | from_yaml }}"
+  loop:
+    - name: pvc.yml.j2
+    - name: job.yml.j2
+  when: interval_minutes == 0
+```
+
+The `when: interval_minutes == 0` part is another control construct which tells Ansible to run this task when the interval_minutes variable equals 0. The `interval_minutes` variable determines if the backup is ad-hoc (interval_minutes == 0) or scheduled (interval_minutes >= 1). By default, `interval_minutes` is equal to 0.
+
+This whole role has been written for you with the exception of the `pvc.yml.j2` jinja2 template. Let's see what this file looks like right now:
+```bash
+cat $LAB/mysql-operator/roles/mysqlbackup/templates/pvc.yml.j2
+```
+
+It does a whole lot of - nothing. Never fear. We'll walk through this one like we did the `mysql` role.
+
+The purpose of this jinja2 template is to create a dynamic pvc.yml spec based on Ansible variables. Let's begin by adding this to the file:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+{% if interval_minutes == 0 %}
+  name: {{ name }}
+{% else %}
+  name: {{ name }}-{{ pvc_count }}
+{% endif %}
+```
+
+Notice how jinja2 has a concept of conditional logic with `if` statements, similar to other template engines and programming languages. If `interval_minutes == 0`, then we'll give the PVC a static name, which again defaults to the name of the mysqlbackup custom resource. Else, we'll assign the PVC a dynamic name by giving it the name `{{ name }}-{{ pvc_count }}`. `pvc_count` is a variable in the role that will keep track of the number of PVCs in the namespace.
+
+Let's add more to the file so that it now looks like this:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+{% if interval_minutes == 0 %}
+  name: {{ name }}
+{% else %}
+  name: {{ name }}-{{ pvc_count }}
+{% endif %}
+  namespace: {{ namespace }}
+  labels:
+    app: {{ name }}
+{% if interval_minutes == 0 %}
+    role: backup
+{% else %}
+    role: scheduledbackup
+{% endif %}
+```
+
+Here we added more of the same concept. Depending on if the backup is ad-hoc or scheduled, we'll give it a label called `backup` or `scheduledbackup` just so an administrator knows what kind of backup was initiated when looking back at the PVCs.
+
+Let's add the last part so that the file looks like this:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+{% if interval_minutes == 0 %}
+  name: {{ name }}
+{% else %}
+  name: {{ name }}-{{ pvc_count }}
+{% endif %}
+  namespace: {{ namespace }}
+  labels:
+    app: {{ name }}
+{% if interval_minutes == 0 %}
+    role: backup
+{% else %}
+    role: scheduledbackup
+{% endif %}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ volume_capacity }}
+```
+
+The PVC will be given a storage capacity of `{{ volume_capacity }}` which defaults to `1Gi`.
+
+Once you're finished, feel free to copy the answer over to ensure you made the correct changes, then continue to the next section:
+```bash
+cp $LAB/answers/mysqlbackup/templates/pvc.yml.j2 $LAB/mysql-operator/roles/mysqlbackup/templates/
+```
+
+## 4.3 Finish the `mysqlrestore` role
+This is the last role to finish before moving on to final testing and deployment of the MySQL Operator. 
+
+First, notice the TODO in the default variables:
+```yaml
+cat $LAB/mysql-operator/roles/mysqlrestore/defaults/main.yml
+```
+
+The missing defaults here are the `name` and `namespace` variables for the custom resource. Let's add those variables in now:
+```yaml
+# Discovered from CustomResource metadata
+name: "{{ meta.name | default('mysqlbackup') }}"
+namespace: "{{ meta.namespace | default('mysql') }}"
+```
+
+In case you haven't noticed, the `#` symbol indicates a comment in YAML (and therefore in Ansible as well). Ansible by nature of being YAML-based is designed to be human-readable, but comments help go a long way to further increase readability.
+
+Let's single out this bit for a second `name: "{{ meta.name | default('mysqlbackup') }}"`. Notice the pipe (`|`) operator. This means the same thing it does in bash - take the output of one command and provide it as input to another. In this case, if the `meta.name` variable does not exist, the default value for `name:` will be `mysqlbackup`. The `meta.name` represents the `mysqlrestore` custom resource name, in this case.
+
+You can see this be done in a similar fashion with `namespace:` as well.
+
+Let's also add something to the `job.yml.j2` jinja2 template to provide the logic behind the mysqlrestore operation. Find the TODO:
+```bash
+cat $LAB/mysql-operator/roles/mysqlrestore/templates/job.yml.j2
+```
+
+Replace where it says `# TODO: Add container args for restore` with the following:
+```yaml
+args: ["mysql --host {{ mysql_deployment }} -uroot -p$ROOT_PASSWORD $DATABASE_NAME < /var/backup/backup.sql"]
+```
+
+This will be the command that is run when a `mysqlrestore` custom resource is created. It will be run in an OpenShift job. Notice the difference between the Ansible variable `mysql_deployment` and the container environment variable `ROOT_PASSWORD`. The OpenShift job only has visibility to it's own environment variables, while the Ansible operator has visiblity to its own variables _and_ to the container environment variables.
+
+Once you're finished, feel free to copy the answer over to ensure your operator is correct:
+```bash
+cp $LAB/answers/mysqlrestore/defaults/main.yml $LAB/mysql-operator/roles/mysqlrestore/defaults/
+cp $LAB/answers/mysqlrestore/templates/job.yml.j2 $LAB/mysql-operator/roles/mysqlrestore/templates/
+```
+
+## 5 Test the Ansible Operator
 The Ansible operator supports [Molecule](https://github.com/ansible/molecule) to perform testing in a live OpenShift cluster. Let's run tests to ensure that the operator is stable and ready to go.
 
-### 4.1 Explore Molecule Structure
+### 5.1 Explore Molecule Structure
 Find the molecule playbooks:
 ```bash
 cd $LAB/mysql-operator/molecule
@@ -148,7 +323,7 @@ The `defaults` folder contains assertions that are used to ensure that the obser
 
 Feel free to check out the `defaults/assert.yml` and `test-cluster/playbook.yml` plays. You'll find that it creates a Mysql CR, waits 2 minutes for it to become active, and then validates the deployment. If the database is healthy, we can assume that the operator is successfully doing its job.
 
-### 4.2 Build the Test Operator
+### 5.2 Build the Test Operator
 We need to turn the Ansible plays into a Docker image so that it can be deployed and tested on OpenShift. We also need to make sure we include the test artifacts that are normally excluded from the production image. We can do this easily with the operator-sdk tool.
 
 On the command line, navigate to the `mysql-operator` directory and build the test operator:
@@ -166,7 +341,7 @@ docker push quay.io/$QUAY_USER/mysql-operator-test
 
 You'll find that this is a somewhat large image. The production-sized operator is much smaller, which is why after we test and validate that the operator is working we should rebuild without the `--enable-tests` flag to remove the test artifacts.
 
-### 4.3 Deploy the Test Operator
+### 5.3 Deploy the Test Operator
 Now that the image has been built and is now in Quay, let's deploy it in your project. 
 
 First, we need to create some resources to give the operator permission to edit your project. If you recall, the `deploy/` directory contains OpenShift resources that are required for the operator to work properly. It contains a service account, role, rolebindings, deployment, CRDs, and CRs. For now, let's create only what we need to test the operator:
@@ -177,7 +352,7 @@ oc create -f deploy/role.yaml
 oc create -f deploy/role_binding.yaml
 ```
 
-### 4.4 Execute Operator Tests
+### 5.4 Execute Operator Tests
 It's time to test the operator! Navigate to the mysql-operator folder:
 ```bash
 cd $LAB/mysql-operator
@@ -192,7 +367,7 @@ The command will hang for a couple minutes until the tests complete. You should 
 
 The command will return a Success message if the testing is successful. Otherwise, it will print the log output of the operator during its run. If the tests did not pass, you might be missing something in your environment, or you may simply have just missed a step.
 
-## 5 Build and Deploy Production Operator
+## 6 Build and Deploy Production Operator
 Now that we know the tests have passed, let's build the more lightweight production operator.
 
 ```bash
@@ -203,7 +378,7 @@ sed -i "s/OPERATOR_IMAGE/quay.io\/$QUAY_USER\/mysql-operator/g" $LAB/mysql-opera
 oc create -f $LAB/mysql-operator/deploy/operator.yaml
 ```
 
-## 6 Deploy a MySQL Server
+## 7 Deploy a MySQL Server
 Now that the Ansible operator is deployed, it's super easy to deploy a MySQL server onto OpenShift! First, let's check out the MySQL CR:
 ```bash
 cat $LAB/mysql-operator/deploy/crds/mysql/mysql_cr.yaml
@@ -221,10 +396,10 @@ oc logs --follow $(oc get po | grep mysql-operator | awk '{print $1}')
 
 When the role is finished, you should see something like `ansible-runner exited successfully` in the logs, as well as a fresh MySQL instance in your project. Now that the instance is created, let's move on to deploying the WidgetFactory application. We'll come back to the operator later to demonstrate a backup and recovery after we have some data to work with.
 
-## 7 Deploy the WidgetFactory application
+## 8 Deploy the WidgetFactory application
 One thing that OpenShift excels at, among many, is integration with Jenkins to provide a CI/CD platform. We can leverage Jenkins and Ansible together to build the WidgetFactory application and deploy it to OpenShift.
 
-### 7.1 Create the jenkins-agent-ansible Imagestream
+### 8.1 Create the jenkins-agent-ansible Imagestream
 The WidgetFactory pipeline depends on a build agent called `jenkins-agent-ansible`. The agent will be used to run a playbook that deploys the WidgetFactory resources to the environment.
 
 The agent has already been built and pushed to Quay.
@@ -234,15 +409,15 @@ We can make Jenkins aware of this build agent by creating an imagestream with a 
 oc process -f $LAB/jenkins-agent-ansible/imagestream.yml --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
 ```
 
-### 7.2 Review Application
+### 8.2 Review Application
 The WidgetFactory application code is under `widget-factory/`. It's a simple spring-data service. One controller is set up as a `spring-data-rest` interface that autoconfigures CRUD operations on our `Widget` object. There is also a second controller that allows for building more custom queries.
 
-### 7.3 Ansible OpenShift Applier
+### 8.3 Ansible OpenShift Applier
 The WidgetFactory pipeline makes use of an Ansible role called the [OpenShift-Applier](https://github.com/redhat-cop/openshift-applier). The OpenShift Applier role is used to process and apply OpenShift templates. It's a useful Ansible role that allows you to specify all of your app's requirements in an OpenShift template and then leverage Ansible to supply parameters to the templates and apply them.
 
 The various OpenShift Applier files for WidgetFactory are under `$LAB/widget-factory/.applier`. You can find all of the parameters the template expects under `group_vars/all.yml`. The Jenkins pipeline will pass in the extra vars when the ansible-playbook command is run.
 
-### 7.4 Deploy Application
+### 8.4 Deploy Application
 Now that the Ansible agent is created and the Jenkins pod is up and running, we're now ready to deploy our application:
 ```bash
 oc process -f $LAB/widget-factory/widget-pipeline.yml --param=SOURCE_REF=master --param DATABASE_HOST=mysql --param APPLICATION_NAMESPACE=$OCP_USER | oc apply -f -
@@ -253,15 +428,15 @@ To view the build's progress, expand `Builds` on the sidebar in the OpenShift UI
 
 When the app starts up, it persists many different widgets to the MySQL instance we created earlier. Let's return our focus back to the Ansible operator to perform a backup of the database.
 
-## 8 Back up the MySQL Database
-### 8.1 MysqlBackup Overview
+## 9 Back up the MySQL Database
+### 9.1 MysqlBackup Overview
 If you recall, the operator that we created earlier contains a role called `mysqlbackup`. This role is capable of taking both ad-hoc and scheduled hot, logical backups of the MySQL database. The backup is triggered when a `MysqlBackup` CR is created in the project. 
 
 Check out the `mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml` resource and notice its `spec:` stanza. Key/value pairs under `spec:` are defined as extra vars to the Ansible role. Notice how this CR has an `interval_minutes: 0` defined on its spec. This passes the `interval_minutes` var to the role, which tells Ansible to take a backup every x number of minutes. In this case, the role is configured to interpret 0 interval_minutes as an ad-hoc backup. Let's keep the CR the way it is for now.
 
 For this lab, the `mysqlbackup` role will take each backup on a separate PVC.
 
-### 8.2 Initiate an Ad-Hoc Backup
+### 9.2 Initiate an Ad-Hoc Backup
 Let's see this backup role in action! We'll use the MysqlBackup spec defined in the given `mysqlbackup_cr.yaml`, which will take an ad-hoc backup of the database. Begin the backup process with:
 ```bash
 oc create -f $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
@@ -269,10 +444,10 @@ oc create -f $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
 
 This will create an OpenShift job that is responsible for mounting a brand new PVC and using it to back up the database's current state. It will keep `max_backups` completed backup PVCs in your project (defined in the `defaults/` of the mysqlbackup role). Wait until the PVC is created and then continue to the next step. You can run `oc get pvc` to determine if the PVC has been created. By default, the backup PVC will be called `mysqlbackup`.
 
-## 9 Restore the MySQL Database
+## 10 Restore the MySQL Database
 Here, we'll try to simulate a disaster recovery scenario in which data is lost from the database and a restore operation must take place.
 
-### 9.1 Delete data from the MySQL database
+### 10.1 Delete data from the MySQL database
 Let's use the `mysql` binary installed on the MySQL pod to delete data from the database. First, access the pod with `oc rsh`:
 ```bash
 oc rsh deployment/mysql
@@ -284,7 +459,7 @@ mysql -h localhost -u admin -padmin123 widgetfactory -e "DROP TABLE widget"
 exit
 ```
 
-### 9.2 Restore the MySQL Database
+### 10.2 Restore the MySQL Database
 Find the MysqlRestore CR at `mysql-backup/deploy/crds/mysqlrestore/mysqlrestore_cr.yaml`. In the spec you'll find a `mysql_backup_pvc` key defined under the spec that will be passed as an extra var to the Ansible role. Provide the name of a backup PVC that was created before the MySQL outtage.
 
 Once you find a good backup to use, supply the name of the backup to the `mysql_backup_pvc` var of the `mysqlrestore_cr.yaml` Then trigger the restore:
@@ -302,7 +477,7 @@ You can check to make sure that the restore was successful by using `oc rsh depl
 mysql -h localhost -u admin -padmin123 widgetfactory -e "select * from widget"
 ```
 
-## 10 For fun - Scheduled MySQL Backup
+## 11 For fun - Scheduled MySQL Backup
 Previously we ran an ad-hoc backup using the mysqlbackup CR. We can create a different mysqlbackup CR to take a scheduled backup of the database:
 ```bash
 sed -i 's/name: mysqlbackup/name: mysqlscheduledbackup/g' $LAB/mysql-operator/deploy/crds/mysqlbackup/mysqlbackup_cr.yaml
@@ -313,5 +488,5 @@ Modify the `spec.interval_minutes` from 0 to 15. This will create a cronjob that
 
 Feel free to observe the backup process with `watch oc get cronjob` and `watch oc get pvc`.
 
-## 11 Thank you!
+## 12 Thank you!
 Thank you for attending our workshop today! Hopefully you learned a lot about how OpenShift and Ansible can come together to accelerate delivery and innovation.

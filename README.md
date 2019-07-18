@@ -46,7 +46,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Atlanta | https://api.cluster-<TBD>.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-<TBD>.openshiftworkshop.com |
+| Atlanta | https://api.cluster-atl-b642.atl-b642.openshiftworkshop.com:6443 | http://console-openshift-console.apps.cluster-atl-b642.atl-b642.openshiftworkshop.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

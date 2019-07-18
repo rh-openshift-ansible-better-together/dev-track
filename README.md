@@ -304,7 +304,7 @@ Replace where it says `# TODO: Add container args for restore` with the followin
 args: ["mysql --host {{ mysql_deployment }} -uroot -p$ROOT_PASSWORD $DATABASE_NAME < /var/backup/backup.sql"]
 ```
 
-This will be the command that is run when a `mysqlrestore` custom resource is created. It will be run in an OpenShift job. Notice the difference between the Ansible variable `mysql_deployment` and the container environment variable `ROOT_PASSWORD`. The OpenShift job only has visibility to it's own environment variables, while the Ansible operator has visiblity to its own variables _and_ to the container environment variables.
+This will be the command that is run when a `mysqlrestore` custom resource is created. It will apply the backup script that gets created by the `mysqlbackup` role.
 
 Once you're finished, feel free to copy the answer over to ensure your operator is correct:
 ```bash

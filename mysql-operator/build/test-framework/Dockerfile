@@ -1,7 +1,7 @@
 FROM BASEIMAGE
 USER 0
 
-RUN yum install -y python-devel gcc libffi-devel mysql
+RUN yum install -y python-devel gcc libffi-devel
 RUN pip install molecule==2.20.1
 
 ARG NAMESPACEDMAN

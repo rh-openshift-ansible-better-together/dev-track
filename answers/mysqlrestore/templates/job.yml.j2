@@ -27,7 +27,7 @@ spec:
               key: database_name
               name: {{ mysql_deployment }}
         command: ["/bin/bash", "-c"]
-        # TODO: Add container args for restore
+        args: ["mysql --host {{ mysql_deployment }} -uroot -p$ROOT_PASSWORD $DATABASE_NAME < /var/backup/backup.sql"]
         volumeMounts:
         - mountPath: /var/backup
           name: backup

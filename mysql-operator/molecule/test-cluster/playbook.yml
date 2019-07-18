@@ -7,13 +7,40 @@
     deploy_dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/deploy"
     mysql_custom_resource: "{{ lookup('file', '/'.join([deploy_dir, 'crds/mysql/mysql_cr.yaml'])) | from_yaml }}"
   tasks:
-  - name: Create the Mysql resource
-    k8s:
-      namespace: '{{ namespace }}'
-      definition: "{{ lookup('file', '/'.join([deploy_dir, 'crds/mysql/mysql_cr.yaml'])) }}"
+    - block:
+      - name: Create the Mysql Resource
+        k8s:
+          state: present
+          namespace: "{{ namespace }}"
+          definition: "{{ mysql_custom_resource }}"
 
-  - name: Give the Mysql deployment a chance to become ready
-    pause:
-      seconds: 120
+      - name: Wait 120s for reconciliation to run
+        k8s_facts:
+          api_version: '{{ mysql_custom_resource.apiVersion }}'
+          kind: '{{ mysql_custom_resource.kind }}'
+          namespace: '{{ namespace }}'
+          name: '{{ mysql_custom_resource.metadata.name }}'
+        register: cr
+        until:
+        - "'Successful' in (cr | json_query('resources[].status.conditions[].reason'))"
+        delay: 6
+        retries: 20
 
-- import_playbook: "{{ playbook_dir }}/../default/asserts.yml"
+      - name: Get Mysql deployment
+        k8s_facts:
+          api_version: 'apps/v1'
+          kind: 'Deployment'
+          namespace: '{{ namespace }}'
+          name: '{{ mysql_custom_resource.metadata.name }}'
+        register: mysql_deployment
+
+      - name: Ensure that database is ready
+        assert:
+          that: mysql_deployment.resources[0].status.readyReplicas == 1
+
+      always:
+      - name: Delete MySQL Server
+        k8s:
+          state: absent
+          definition: "{{ mysql_custom_resource }}"
+          namespace: "{{ namespace }}"

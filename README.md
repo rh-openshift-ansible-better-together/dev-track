@@ -130,6 +130,8 @@ Here you'll find three Ansible roles:
 ## 4 Write the Ansible Operator
 Time to get a little more hands-on. We've left several placeholders throughout the operator for you to write some Ansible. Let's walk through the changes you'll have to make to allow the operator to be fully functional.
 
+Each VM has the `vi` editor installed. We also provide the complete files under `$LAB/answers` for you to copy at the end of each section.
+
 ### 4.1 Finish the `mysql` Role
 View the `main.yml` tasks file under the `mysql` role:
 ```bash
@@ -271,7 +273,7 @@ Once you're finished, feel free to copy the answer over to ensure you made the c
 cp $LAB/answers/mysqlbackup/templates/pvc.yml.j2 $LAB/mysql-operator/roles/mysqlbackup/templates/
 ```
 
-## 4.3 Finish the `mysqlrestore` role
+### 4.3 Finish the `mysqlrestore` role
 This is the last role to finish before moving on to final testing and deployment of the MySQL Operator. 
 
 First, notice the TODO in the default variables:

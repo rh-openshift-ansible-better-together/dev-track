@@ -1,0 +1,177 @@
+---
+- name: Set Facts
+  hosts: localhost
+  connection: local
+  vars_files:
+  - login-creds.yml
+  tasks:
+  - include_tasks: setup-test.yml
+  - set_fact:
+      ignore_differences:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: ''
+          creationTimestamp: null
+          generation: 0
+          selfLink: null
+        spec:
+          template:
+            metadata:
+              creationTimestamp: null
+
+- name: Test Provision
+  hosts: localhost
+  connection: local
+  vars:
+    provision_replicationcontroller: >-
+      {{ lookup('template', 'resources/test-replicationcontroller.yml.j2')
+       | from_yaml }}
+    image_pull_policy: IfNotPresent
+    readiness_probe_delay: 5
+
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - projects:
+      - name: provision-test
+
+  tasks:
+  - name: Provision ReplicationController
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_replicationcontroller }}"
+
+  - name: Get ReplicationController
+    command: >-
+      {{ test_oc_cmd }} get --export replicationcontroller
+      test-replicationcontroller -n provision-test -o json
+    register: get_replicationcontroller
+    changed_when: false
+
+  - name: Verify ReplicationController
+    fail:
+      msg: |
+        ReplicationController not defined as expected
+        >>>
+        {{ cmp_replicationcontroller | to_yaml }}
+        ===
+        {{ got_replicationcontroller | to_yaml }}
+        <<<
+    vars:
+      got_replicationcontroller: >-
+        {{ get_replicationcontroller.stdout | from_json
+         | combine(ignore_differences, recursive=True) }}
+      cmp_replicationcontroller: >-
+        {{ provision_replicationcontroller
+         | combine(ignore_differences, recursive=True) }}
+    when: >-
+      cmp_replicationcontroller.metadata != got_replicationcontroller.metadata or
+      cmp_replicationcontroller.spec != got_replicationcontroller.spec
+
+  - name: Check reprovision ReplicationController
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_replicationcontroller }}"
+    register: reprovision_replicationcontroller
+
+  - fail:
+      msg: Reprovision indicated change to ReplicationController
+    when: reprovision_replicationcontroller.changed
+
+- name: Test Update
+  hosts: localhost
+  connection: local
+  vars:
+    provision_replicationcontroller: >-
+      {{ lookup('template', 'resources/test-replicationcontroller.yml.j2')
+       | from_yaml }}
+    image_pull_policy: Always
+    readiness_probe_delay: 10
+
+  tasks:
+  - name: Apply update to ReplicationController
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_replicationcontroller }}"
+    register: do_update
+
+  - name: Check reported update patch
+    fail:
+      msg: |
+        Update patch did not match expected
+        >>>
+        {{ update_patch | to_yaml }}
+        ===
+        {{ do_update.patch | to_yaml }}
+        <<<
+    vars:
+      update_patch:
+      - op: test
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+      - op: test
+        path: /spec/template/spec/containers/0/readinessProbe/initialDelaySeconds
+        value: 5
+      - op: replace
+        path: /spec/template/spec/containers/0/readinessProbe/initialDelaySeconds
+        value: 10
+    when: do_update.patch != update_patch
+
+  - name: Get ReplicationController
+    command: >-
+      {{ test_oc_cmd }} get --export replicationcontroller
+      test-replicationcontroller -n provision-test -o json
+    register: get_replicationcontroller
+    changed_when: false
+
+  - name: Verify Update ReplicationController
+    fail:
+      msg: |
+        ReplicationController not defined as expected
+        >>>
+        {{ cmp_replicationcontroller | to_yaml }}
+        ===
+        {{ got_replicationcontroller | to_yaml }}
+        <<<
+    vars:
+      got_replicationcontroller: >-
+        {{ get_replicationcontroller.stdout | from_json
+         | combine(ignore_differences, recursive=True) }}
+      cmp_replicationcontroller: >-
+        {{ provision_replicationcontroller
+         | combine(ignore_differences, recursive=True) }}
+    when: >-
+      cmp_replicationcontroller.metadata != got_replicationcontroller.metadata or
+      cmp_replicationcontroller.spec != got_replicationcontroller.spec
+
+- name: Test Delete
+  hosts: localhost
+  connection: local
+  tasks:
+  - name: Delete ReplicationController
+    openshift_provision:
+      action: delete
+      namespace: provision-test
+      connection: "{{ openshift_connection }}"
+      resource:
+        apiVersion: extensions/v1beta1
+        kind: ReplicationController
+        metadata:
+          name: test-replicationcontroller
+
+  - pause:
+      seconds: 1
+
+  - name: Verify ReplicationController Delete
+    command: >-
+      {{ test_oc_cmd }} get --export replicationcontroller
+      test-replicationcontroller -n provision-test -o json
+    register: get_replicationcontroller
+    failed_when: get_replicationcontroller.rc == 0
+    changed_when: false

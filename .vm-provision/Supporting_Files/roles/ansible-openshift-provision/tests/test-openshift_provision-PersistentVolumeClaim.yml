@@ -1,0 +1,149 @@
+---
+- name: Set Facts
+  hosts: localhost
+  connection: local
+  vars_files:
+  - login-creds.yml
+  tasks:
+  - include_tasks: setup-test.yml
+  - set_fact:
+      ignore_differences:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: ''
+            pv.kubernetes.io/bind-completed: ''
+            pv.kubernetes.io/bound-by-controller: ''
+            volume.beta.kubernetes.io/storage-provisioner: ''
+          creationTimestamp: null
+          finalizers: null
+          selfLink: null
+        spec:
+          dataSource: null
+          storageClassName: ''
+          volumeName: ''
+
+- name: Test Provision
+  hosts: localhost
+  connection: local
+  vars:
+    provision_persistentvolumeclaim: >-
+      {{ lookup('template', 'resources/test-persistentvolumeclaim-minimal.yml.j2')
+       | from_yaml }}
+    persistentvolumeclaim_labels:
+      testlabel: foo
+
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - projects:
+      - name: provision-test
+
+  tasks:
+  - name: Provision PersistentVolumeClaim
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_persistentvolumeclaim }}"
+
+  - name: Get PersistentVolumeClaim
+    command: >-
+      {{ test_oc_cmd }} get --export persistentvolumeclaim
+      test-persistentvolumeclaim -n provision-test -o json
+    register: get_persistentvolumeclaim
+    changed_when: false
+
+  - name: Verify PersistentVolumeClaim
+    fail:
+      msg: |
+        PersistentVolumeClaim not defined as expected
+        >>>
+        {{ cmp_persistentvolumeclaim | to_yaml }}
+        ===
+        {{ got_persistentvolumeclaim | to_yaml }}
+        <<<
+    vars:
+      got_persistentvolumeclaim: "{{ get_persistentvolumeclaim.stdout | from_json | combine(ignore_differences, recursive=True) }}"
+      cmp_persistentvolumeclaim: "{{ provision_persistentvolumeclaim | combine(ignore_differences, recursive=True) }}"
+    when: >-
+      cmp_persistentvolumeclaim.metadata != got_persistentvolumeclaim.metadata or
+      cmp_persistentvolumeclaim.spec != got_persistentvolumeclaim.spec
+
+  - name: Check reprovision PersistentVolumeClaim
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_persistentvolumeclaim }}"
+      fail_on_change: true
+    register: reprovision_persistentvolumeclaim
+
+  - fail:
+      msg: Reprovision indicated change to PersistentVolumeClaim
+    when: reprovision_persistentvolumeclaim.changed
+
+- name: Test Update
+  hosts: localhost
+  connection: local
+  vars:
+    provision_persistentvolumeclaim: >-
+      {{ lookup('template', 'resources/test-persistentvolumeclaim-minimal.yml.j2')
+       | from_yaml }}
+    persistentvolumeclaim_labels:
+      testlabel: bar
+
+  tasks:
+  - name: Apply update to PersistentVolumeClaim
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_persistentvolumeclaim }}"
+
+  - name: Get PersistentVolumeClaim
+    command: >-
+      {{ test_oc_cmd }} get --export persistentvolumeclaim
+      test-persistentvolumeclaim -n provision-test -o json
+    register: get_persistentvolumeclaim
+    changed_when: false
+
+  - name: Verify Update PersistentVolumeClaim
+    fail:
+      msg: |
+        PersistentVolumeClaim not defined as expected
+        >>>
+        {{ cmp_persistentvolumeclaim | to_yaml }}
+        ===
+        {{ got_persistentvolumeclaim | to_yaml }}
+        <<<
+    vars:
+      got_persistentvolumeclaim: "{{ get_persistentvolumeclaim.stdout | from_json | combine(ignore_differences, recursive=True) }}"
+      cmp_persistentvolumeclaim: "{{ provision_persistentvolumeclaim | combine(ignore_differences, recursive=True) }}"
+    when: >-
+      cmp_persistentvolumeclaim.metadata != got_persistentvolumeclaim.metadata or
+      cmp_persistentvolumeclaim.spec != got_persistentvolumeclaim.spec
+
+- name: Test Delete
+  hosts: localhost
+  connection: local
+  tasks:
+  - name: Delete PersistentVolumeClaim
+    openshift_provision:
+      action: delete
+      namespace: provision-test
+      connection: "{{ openshift_connection }}"
+      resource:
+        kind: PersistentVolumeClaim
+        metadata:
+          name: test-persistentvolumeclaim
+
+  - pause:
+      seconds: 1
+
+  - name: Verify PersistentVolumeClaim Delete
+    command: >-
+      {{ test_oc_cmd }} get --export persistentvolumeclaim
+      test-persistentvolumeclaim -n provision-test -o json
+    register: get_persistentvolumeclaim
+    failed_when: get_persistentvolumeclaim.rc == 0
+    until: get_persistentvolumeclaim.rc != 0
+    retries: 3
+    delay: 1
+    changed_when: false

@@ -1,0 +1,177 @@
+---
+- name: Set Facts
+  hosts: localhost
+  connection: local
+  vars_files:
+  - login-creds.yml
+  tasks:
+  - include_tasks: setup-test.yml
+  - set_fact:
+      ignore_differences:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: ''
+          creationTimestamp: null
+          generation: 0
+          selfLink: null
+        spec:
+          revisionHistoryLimit: 10
+          template:
+            metadata:
+              creationTimestamp: null
+
+- name: Test Provision
+  hosts: localhost
+  connection: local
+  vars:
+    provision_deploymentconfig: "{{ lookup('template', 'resources/test-deploymentconfig.yml.j2') | from_yaml }}"
+    deploymentconfig_env:
+    - name: AFOO
+      value: abar
+    - name: FOO
+      value: bar
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - projects:
+      - name: provision-test
+
+  tasks:
+  - name: Provision DeploymentConfig
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_deploymentconfig }}"
+
+  - name: Get DeploymentConfig
+    command: >-
+      {{ test_oc_cmd }} get --export deploymentconfig
+      test-deploymentconfig -n provision-test -o json
+    register: get_deploymentconfig
+    changed_when: false
+
+  - name: Verify DeploymentConfig
+    fail:
+      msg: |
+        DeploymentConfig not defined as expected
+        >>>
+        {{ cmp_deploymentconfig | to_yaml }}
+        ===
+        {{ got_deploymentconfig | to_yaml }}
+        <<<
+    vars:
+      got_deploymentconfig: "{{ get_deploymentconfig.stdout | from_json | combine(ignore_differences, recursive=True) }}"
+      cmp_deploymentconfig: "{{ provision_deploymentconfig | combine(ignore_differences, recursive=True) }}"
+    when: >-
+      cmp_deploymentconfig.metadata != got_deploymentconfig.metadata or
+      cmp_deploymentconfig.spec != got_deploymentconfig.spec
+
+- name: Test Reprovision
+  hosts: localhost
+  connection: local
+  vars:
+    provision_deploymentconfig: "{{ lookup('template', 'resources/test-deploymentconfig.yml.j2') | from_yaml }}"
+    deploymentconfig_env:
+    - name: FOO
+      value: bar
+    - name: AFOO
+      value: abar
+  tasks:
+  - name: Check reprovision DeploymentConfig
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      fail_on_change: true
+      namespace: provision-test
+      resource: "{{ provision_deploymentconfig }}"
+    register: reprovision_deploymentconfig
+
+  - fail:
+      msg: Reprovision indicated change to DeploymentConfig
+    when: reprovision_deploymentconfig.changed
+
+- name: Test Update
+  hosts: localhost
+  connection: local
+  vars:
+    provision_deploymentconfig: "{{ lookup('template', 'resources/test-deploymentconfig.yml.j2') | from_yaml }}"
+    deploymentconfig_env:
+    - name: FOO
+      value: bar
+  tasks:
+  - name: Apply update to DeploymentConfig
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_deploymentconfig }}"
+    register: do_update
+
+  - name: Check reported update patch
+    fail:
+      msg:
+        Update patch did not match expected
+        >>>
+        {{ update_patch | to_yaml }}
+        ===
+        {{ do_update.patch | to_yaml }}
+        <<<
+    vars:
+      update_patch:
+      - op: test
+        path: /spec/template/spec/containers/0/env/0
+        value:
+          name: AFOO
+          value: abar
+      - op: remove
+        path: /spec/template/spec/containers/0/env/0
+    when: do_update.patch != update_patch
+
+  - name: Get DeploymentConfig
+    command: >-
+      {{ test_oc_cmd }} get --export deploymentconfig
+      test-deploymentconfig -n provision-test -o json
+    register: get_deploymentconfig
+    changed_when: false
+
+  - name: Verify Update DeploymentConfig
+    fail:
+      msg: |
+        DeploymentConfig not defined as expected
+        >>>
+        {{ cmp_deploymentconfig | to_yaml }}
+        ===
+        {{ got_deploymentconfig | to_yaml }}
+        <<<
+    vars:
+      got_deploymentconfig: "{{ get_deploymentconfig.stdout | from_json | combine(ignore_differences, recursive=True) }}"
+      cmp_deploymentconfig: "{{ provision_deploymentconfig | combine(ignore_differences, recursive=True) }}"
+    when: >-
+      cmp_deploymentconfig.metadata != got_deploymentconfig.metadata or
+      cmp_deploymentconfig.spec != got_deploymentconfig.spec
+
+- name: Test Delete
+  hosts: localhost
+  connection: local
+  vars:
+    provision_deploymentconfig:
+      apiVersion: extensions/v1beta1
+      kind: DeploymentConfig
+      metadata:
+        name: test-deploymentconfig
+  tasks:
+  - name: Delete DeploymentConfig
+    openshift_provision:
+      action: delete
+      namespace: provision-test
+      connection: "{{ openshift_connection }}"
+      resource: "{{ provision_deploymentconfig }}"
+
+  - pause:
+      seconds: 1
+
+  - name: Verify DeploymentConfig Delete
+    command: >-
+      {{ test_oc_cmd }} get --export deploymentconfig
+      test-deploymentconfig -n provision-test -o json
+    register: get_deploymentconfig
+    failed_when: get_deploymentconfig.rc == 0
+    changed_when: false

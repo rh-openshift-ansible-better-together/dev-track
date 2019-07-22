@@ -1,0 +1,12 @@
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: test-clusterrole
+rules:
+{% for rule in rules %}
+- apiGroups: {{ rule.apiGroups | to_json }}
+  attributeRestrictions: null
+  resources: {{ rule.resources | to_json }}
+  verbs: {{ rule.verbs | to_json }}
+{% endfor %}

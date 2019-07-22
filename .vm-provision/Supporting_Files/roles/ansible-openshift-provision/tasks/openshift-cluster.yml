@@ -1,0 +1,90 @@
+---
+- when: >-
+    openshift_login_username is defined or
+    openshift_cluster.login is defined
+  block:
+  - name: Login to cluster
+    command: >-
+      {{ oc_cmd_opt }} login
+      {% if openshift_cluster.login is defined %}
+      --username={{ openshift_cluster.login.username | quote }}
+      --password={{ openshift_cluster.login.password | quote }}
+      {% else %}
+      --username={{ openshift_login_username | quote }}
+      --password={{ openshift_login_password | quote }}
+      {% endif %}
+    check_mode: false
+    changed_when: false
+
+  - name: Get login session token
+    command: >-
+      oc whoami -t
+    register: oc_get_token
+    check_mode: false
+    changed_when: false
+
+- name: Set fact for oc_cmd
+  set_fact:
+    oc_cmd: >-
+      {{ oc_cmd_opt }}
+      {% if not oc_get_token.skipped | default(False) %}
+      --token={{ oc_get_token.stdout }}
+      {% endif %}
+
+- name: Get OpenShift version
+  command: "{{ oc_cmd }} version"
+  register: get_version
+  check_mode: false
+  changed_when: false
+
+- name: Process facts for OpenShift version
+  include_tasks: >-
+    {% if 'Client Version' in oc_version_output -%}
+    openshift-4-version-facts.yml
+    {%- else -%}
+    openshift-3-version-facts.yml
+    {%- endif %}
+  vars:
+    oc_version_output: get_version.stdout
+
+- name: Get cluster-vars configmap from kube-public
+  command: >-
+    {{ oc_cmd }} get configmap -n kube-public cluster-vars -o json
+  register: get_cluster_vars
+  check_mode: false
+  changed_when: false
+  failed_when: >-
+    get_cluster_vars.rc != 0 and
+    '(NotFound)' not in get_cluster_vars.stderr and
+    '(Forbidden)' not in get_cluster_vars.stderr
+
+- name: Set fact for cluster
+  set_fact:
+    openshift_provision_cluster_vars: "{{ cluster_vars.data }}"
+  vars:
+    cluster_vars: >-
+      {{ (
+        get_cluster_vars.stdout if get_cluster_vars.rc == 0 else '{}'
+      ) | from_json }}
+  when: get_cluster_vars.rc == 0
+
+- name: Include provision pre-tasks
+  include_tasks: "{{ pre_tasks_include }}"
+  with_items: >-
+    {{ openshift_cluster_provision_pre_tasks | default([])
+     | union(openshift_cluster.provision_pre_tasks | default([]))
+    }}
+  loop_control:
+    loop_var: pre_tasks_include
+
+- name: Provision resources for cluster
+  include_tasks: openshift-cluster-provision.yml
+
+- name: Include provision post-tasks
+  include_tasks: "{{ post_tasks_include }}"
+  with_items: >-
+    {{ openshift_cluster_provision_post_tasks | default([])
+     | union(openshift_cluster.provision_post_tasks | default([]))
+    }}
+  loop_control:
+    loop_var: post_tasks_include

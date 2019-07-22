@@ -12,14 +12,14 @@
         state: "{{ state }}"
         template_body: "{{ lookup('template', 'cloudformation.j2') }}"
 
-    - name: Remove vm from known_hosts if state==absent
+    - name: Remove VMs from known_hosts if state==absent
       known_hosts:
         name: "{{ city }}vm{{ item }}.{{ subdomain_base }}"
         state: absent
       loop: "{{ range(1, (num_instances | int) + 1) | list }}"
       when: state == "absent"
 
-    - name: Create new group based on ec2 instances
+    - name: Create new resource group based on new ec2 instances
       block:
         - name: Get ec2 facts
           ec2_instance_facts:
@@ -29,7 +29,7 @@
               "tag:City": "{{ city }}"
           register: ec2_facts
 
-        - name: Add ec2 instances to ec2_hosts group
+        - name: Add ec2 instances to the resource group "ec2_hosts"
           add_host:
             name: "{{ item.public_ip_address }}"
             group: ec2_hosts

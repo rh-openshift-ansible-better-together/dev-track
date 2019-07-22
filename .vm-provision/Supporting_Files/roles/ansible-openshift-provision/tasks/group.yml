@@ -1,0 +1,27 @@
+---
+- name: Get current members of group {{ group.name }}
+  command: >
+    {{ oc_cmd }} get group {{ group.name }} -o 'jsonpath={range .users[*]}{@}{"\n"}{end}'
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  when: not group.remove_unlisted_members | default(False) | bool
+  register: get_group_members
+
+- name: Group {{ group.name }}
+  openshift_provision:
+    action: apply
+    connection:
+      oc_cmd: "{{ oc_cmd }}"
+    resource:
+      apiVersion: v1
+      kind: Group
+      metadata:
+        name: "{{ group.name }}"
+      users: >-
+        {{ group.members if group.remove_unlisted_members|default(False)|bool
+           else group.members|union(get_group_members.stdout_lines)|sort
+        }}
+  register: provision
+  changed_when: >-
+    provision | record_change_provision(change_record)

@@ -1,0 +1,27 @@
+---
+- name: Provision cluster resources
+  openshift_provision:
+    action: "{{ provision_action }}"
+    patch_type: >-
+      {{
+      resource | json_query('metadata.annotations."openshift-provision/patch-type"')
+      | default(resource.patch_type, true)
+      | default('strategic', true)
+      }}
+    connection:
+      oc_cmd: "{{ oc_cmd }}"
+    resource: "{{ resource }}"
+  with_items: "{{ resource_list }}"
+  loop_control:
+    loop_var: resource
+  vars:
+    provision_action: >-
+      {{
+      resource | json_query('metadata.annotations."openshift-provision/action"')
+      | default(resource.action, true)
+      | default('apply', true)
+      }}
+  when: provision_action != 'ignore'
+  register: provision
+  changed_when: >-
+    provision | record_change_provision(change_record)

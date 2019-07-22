@@ -1,0 +1,18 @@
+---
+- name: Set Facts
+  hosts: localhost
+  connection: local
+  vars_files:
+  - login-creds.yml
+  tasks:
+  - include_tasks: setup-test.yml
+
+  - name: Get clusternetwork definition
+    command: >-
+      {{ test_oc_cmd }} get clusternetwork default -o json
+    register: get_clusternetwork
+    changed_when: false
+
+  - include_tasks: tasks/test-projects-join_pod_networks.yml
+    when: >
+      get_clusternetwork.stdout | from_json | json_query('pluginName') == 'redhat/openshift-ovs-multitenant'

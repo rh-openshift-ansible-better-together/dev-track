@@ -1,0 +1,28 @@
+---
+- name: Get pod network for {{ project.name }}
+  command: >
+    {{ oc_cmd }} get netnamespace {{ project.name | quote }}
+    -o 'jsonpath={.netid}'
+  check_mode: false
+  changed_when: false
+  register: get_pod_network
+
+- name: Get pod network for {{ project.join_pod_network }}
+  command: >
+    {{ oc_cmd }} get netnamespace {{ project.join_pod_network | quote }}
+    -o 'jsonpath={.netid}'
+  check_mode: false
+  changed_when: false
+  register: get_join_pod_network
+
+- name: Join pod network for {{ project.name }} to {{ project.join_pod_network }}
+  command: >
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} adm pod-network join-projects
+    --to={{ project.join_pod_network }}
+    {{ project.name }}
+  when: get_pod_network.stdout != get_join_pod_network.stdout
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)

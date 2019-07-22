@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  connection: local
+  roles:
+  - role: openshift-provision
+  vars_files:
+  - login-creds.yml
+  vars:
+    provision_persistentvolumeclaim: >-
+      {{ lookup('template', 'resources/test-persistentvolumeclaim-minimal.yml.j2')
+       | from_yaml }}
+    persistentvolumeclaim_labels:
+      testlabel: bar
+  tasks:
+  - name: Login to OpenShift Cluster
+    openshift_login:
+      username: "{{ openshift_test_login_username }}"
+      password: "{{ openshift_test_login_password }}"
+      server: "{{ openshift_connection_server }}"
+      insecure_skip_tls_verify: "true"
+    register: openshift_login
+
+  - name: Create provision-test namespace
+    command: >-
+      oc --insecure-skip-tls-verify
+      --server={{ openshift_login.session.server | quote }}
+      --token={{ openshift_login.session.token | quote }}
+      new-project provision-test
+    register: create_provision_test
+    failed_when: >-
+      create_provision_test.rc != 0 and
+      "already exists" not in create_provision_test.stderr
+
+  - name: Test Provision
+    openshift_provision:
+      connection: "{{ openshift_login.session }}"
+      namespace: provision-test
+      resource: "{{ provision_persistentvolumeclaim }}"
+
+  - name: Remove provision-test namespace
+    command: >-
+      oc --insecure-skip-tls-verify
+      --server={{ openshift_login.session.server | quote }}
+      --token={{ openshift_login.session.token | quote }}
+      delete project provision-test

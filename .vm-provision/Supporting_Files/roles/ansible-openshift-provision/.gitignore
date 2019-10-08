@@ -1,0 +1,5 @@
+*.swp
+*.pyc
+*.retry
+login-creds.yml
+cicd-creds.yml

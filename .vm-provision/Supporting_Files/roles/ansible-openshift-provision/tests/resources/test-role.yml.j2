@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: test-role
+rules:
+{% for rule in rules %}
+- apiGroups: {{ rule.apiGroups | to_json }}
+  attributeRestrictions: null
+  resources: {{ rule.resources | to_json }}
+  verbs: {{ rule.verbs | to_json }}
+{% endfor %}

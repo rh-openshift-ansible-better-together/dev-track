@@ -1,0 +1,6 @@
+[OSEv3:children]
+ansible_host
+
+[OSEv3:vars]
+[ansible_host]
+localhost

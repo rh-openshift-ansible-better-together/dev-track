@@ -1,0 +1,105 @@
+---
+## DESCRIPTION
+#
+# Process template and instantiate objects.
+#
+# Called from tasks/project.yml
+#
+## VARIABLES
+#
+# `project` - project in which to process template with keys:
+#   `name` - project name
+#
+# `template` - template information with keys:
+#   `action` - provision action (optional, default: 'apply')
+#   `name` - template name (optional)
+#   `namespace` - template namespace (optional)
+#   `file` - template source file (optional)
+#   `parameters` - parameters to pass to template (optional)
+#   `url` - template source URL (optional)
+#
+
+- name: Create temporary directory for template
+  tempfile:
+    state: directory
+  register: tempfile
+  when: template.file is defined and template.file != ''
+  check_mode: false
+  changed_when: false
+
+- name: Copy template
+  copy:
+    src: "{{ template.file }}"
+    dest: "{{ tempfile.path }}"
+  when: >-
+    template.file is defined and
+    template.file != '' and
+    not template.file is match('(https?|ftp)://.*')
+  check_mode: false
+  changed_when: false
+
+- name: Download template
+  get_url:
+    url: "{{ template.file }}"
+    dest: "{{ tempfile.path }}"
+  when: >-
+    template.file is defined and
+    template.file is match('(https?|ftp)://.*')
+  check_mode: false
+  changed_when: false
+
+- name: Process template
+  command: >-
+    {{ oc_cmd }} process -o json
+    {% if template.file is defined %}
+    -f {{ tempfile.path }} --local
+    {% else %}
+    -n {{ template.namespace | default(project.name if project is defined else 'openshift') }}
+    {{ template.name }}
+    {% endif %}
+    {% if template.parameters is defined %}
+    {% for key, value in template.parameters.items() %}
+    -p {{ (key ~ '=' ~ value) | quote }}
+    {% endfor %}
+    {% endif %}
+  check_mode: false
+  changed_when: false
+  register: process_template
+
+- name: Template resources
+  openshift_provision:
+    action: "{{ provision_action }}"
+    patch_type: >-
+      {{
+      item | json_query('metadata.annotations."openshift-provision/patch-type"')
+      | default(item.patch_type, true)
+      | default(template.patch_type, true)
+      | default('strategic', true)
+      }}
+    connection:
+      oc_cmd: "{{ oc_cmd }}"
+    namespace: "{{ project.name if project is defined else '' }}"
+    resource: "{{ item }}"
+  with_items: >-
+    {{ process_template.stdout | from_json | json_query('items') }}
+  vars:
+    provision_action: >-
+      {{
+      item | json_query('metadata.annotations."openshift-provision/action"')
+      | default(item.action, true)
+      | default(template.action, true)
+      | default('apply', true)
+      }}
+  when: provision_action != 'ignore'
+  register: provision
+  changed_when: >-
+    provision | record_change_provision(change_record)
+
+- name: Cleanup temporary directory for template
+  file:
+    path: "{{ tempfile.path }}"
+    state: absent
+  register: tempfile
+  when: template.file is defined
+  check_mode: false
+  changed_when: false

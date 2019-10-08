@@ -52,4 +52,3 @@
       package:
         name: git
         state: present
-

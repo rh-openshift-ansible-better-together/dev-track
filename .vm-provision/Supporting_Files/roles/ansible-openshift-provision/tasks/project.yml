@@ -1,0 +1,224 @@
+---
+- name: Check if project {{ project.name }} exists
+  command: >
+    {{ oc_cmd }} get project {{ project.name }} -o json
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: get_project
+
+- name: Create project {{ project.name }}
+  command: >-
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} {% if project.admin_create | default(False) | bool %}adm{% endif %}
+    new-project {{ project.name }}
+    {% if project.display_name is defined %}--display-name={{ project.display_name | quote }}{% endif %}
+    {% if project.description is defined %}--description={{ project.description | quote }}{% endif %}
+  when: get_project.rc != 0
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)
+
+- name: Set project display-name for {{ project.name }}
+  command: >
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} patch namespace {{ project.name }}
+    -R -p {{ patch | to_json | quote }}
+  vars:
+    current_display_name: >-
+      {{
+      (get_project.stdout if get_project.rc == 0 else '{}')
+      | from_json
+      | json_query('metadata.annotations."openshift.io/display-name"')
+      }}
+    patch:
+      metadata:
+        annotations:
+          "openshift.io/display-name": "{{ project.display_name | default('') }}"
+  when: >
+    get_project.rc == 0 and
+    project.display_name is defined and (
+      current_display_name is not defined or
+      current_display_name != project.display_name
+    )
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)
+
+- name: Set project description for {{ project.name }}
+  command: >
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} patch namespace {{ project.name }}
+    -R -p {{ patch | to_json | quote }}
+  vars:
+    current_description: >-
+      {{
+      (get_project.stdout if get_project.rc == 0 else '{}')
+      | from_json
+      | json_query('metadata.annotations."openshift.io/description"')
+      }}
+    patch:
+      metadata:
+        annotations:
+          "openshift.io/description": "{{ project.description | default('') }}"
+  when: >
+    get_project.rc == 0 and
+    project.description is defined and (
+      current_description is not defined or
+      current_description != project.description
+    )
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)
+
+- name: Set project node-selector for {{ project.name }}
+  command: >
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} patch namespace {{ project.name }}
+    -R -p {{ patch | to_json | quote }}
+  vars:
+    current_node_selector: >-
+      {{
+      ( get_project.stdout if get_project.rc == 0 else '{}' )
+      | from_json
+      | json_query('metadata.annotations."openshift.io/node-selector"')
+      }}
+    patch:
+      metadata:
+        annotations:
+          "openshift.io/node-selector": "{{ project.node_selector | default('') }}"
+  when: >
+    project.node_selector is defined and (
+      current_node_selector is not defined or
+      current_node_selector != project.node_selector
+    )
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)
+
+- name: Set project annotations for {{ project.name }}
+  command: >
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} patch namespace {{ project.name | quote }}
+    -R -p {{ patch | to_json | quote }}
+  vars:
+    current_annotations: >-
+      {{
+      ( get_project.stdout if get_project.rc == 0 else '{}' )
+      | from_json
+      | json_query('metadata.annotations')
+      }}
+    patch:
+      metadata:
+        annotations: "{{ project.annotations | default({}) }}"
+  when: >
+    project.annotations is defined and (
+      get_project.rc != 0 or
+      current_annotations is not defined or
+      current_annotations == '' or
+      current_annotations != current_annotations | combine(project.annotations, recursive=True)
+    )
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)
+
+- name: Set project labels for {{ project.name }}
+  command: >
+    {% if ansible_check_mode %}echo{% endif %}
+    {{ oc_cmd }} patch namespace {{ project.name | quote }}
+    --type=json -o json -p {{ patch | to_json | quote }}
+  vars:
+    current_labels: >-
+      {{
+      ( get_project.stdout if get_project.rc == 0 else '{}' )
+      | from_json
+      | json_query('metadata.labels')
+      }}
+    patch:
+    - op: add
+      path: /metadata/labels
+      value: "{{ project.labels | default({}) }}"
+  when: >
+    project.labels is defined and (
+      get_project.rc != 0 or
+      current_labels is not defined or
+      current_labels != project.labels
+    )
+  check_mode: false
+  register: command
+  changed_when: >-
+    command | record_change_command(change_record)
+
+- name: Handle project join_pod_network
+  include_tasks: project-pod-network.yml
+  static: no
+  when:
+  - project.join_pod_network is defined
+  - project.join_pod_network != ''
+
+- name: Handle project multicast_enabled
+  include_tasks: project-multicast.yml
+  static: no
+  when:
+  - project.multicast_enabled is defined
+  - project.multicast_enabled != ''
+
+- name: Handle project service_accounts
+  include_tasks: service-accounts.yml
+  when: >-
+    project.service_accounts is defined
+
+- name: Handle project role bindings for {{ project.name }}
+  include_tasks: project-role-bindings.yml
+  when: >-
+    project.role_bindings is defined or
+    project.user_to_role is defined or
+    project.group_to_role is defined
+
+- name: Handle project imagestreams for {{ project.name }}
+  include_tasks: project-imagestreams.yml
+  when: >-
+    project.imagestreams is defined
+
+- name: Handle project resources for {{ project.name }}
+  include_tasks: project-resources.yml
+  static: false
+  with_items: "{{ project.resources | default([]) }}"
+  vars:
+    resource_path: "{{ project.resource_path | default(cluster_resource_path) }}"
+    resource_list: >-
+      {%- if resource_item is mapping -%}
+      {{ [resource_item] }}
+      {%- else -%}
+      {{ lookup(
+           'template' if resource_item.endswith('.j2') else 'file',
+           lookup('first_found', {'files':resource_item, 'paths': resource_path})
+         ) | yaml_to_resource_list
+      }}
+      {%- endif -%}
+  loop_control:
+    loop_var: resource_item
+
+- name: Handle project templates
+  include_tasks: process-template.yml
+  # Allow "process_templates" to also be specified as "templates" for
+  # compatibility with ansible-stacks.
+  with_items: >
+    {{
+    project.process_templates
+    | default([])
+    | union( project.templates | default([]) )
+    }}
+  loop_control:
+    loop_var: template
+
+- name: Handle project helm_charts
+  include_tasks: helm-chart.yml
+  with_items: "{{ project.helm_charts | default([]) }}"
+  loop_control:
+    loop_var: helm_chart

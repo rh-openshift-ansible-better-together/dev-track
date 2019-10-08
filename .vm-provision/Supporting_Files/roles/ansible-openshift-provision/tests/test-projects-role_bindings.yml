@@ -1,0 +1,132 @@
+- name: Set Facts
+  hosts: localhost
+  connection: local
+  vars_files:
+  - login-creds.yml
+  tasks:
+  - include_tasks: setup-test.yml
+  - set_fact:
+      ignore_differences:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: ''
+          creationTimestamp: null
+          selfLink: null
+
+- name: Test Provision
+  hosts: localhost
+  connection: local
+  vars:
+    edit_users:
+    - alice
+    - bob
+    edit_groups:
+    - subgenius
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - projects:
+      - name: provision-test
+        role_bindings:
+        - role: edit
+          users: "{{ edit_users }}"
+          groups: "{{ edit_groups }}"
+          remove_unlisted: true
+
+  tasks:
+  - name: Get project RoleBindings
+    command: >-
+      {{ test_oc_cmd }} get --export rolebinding -n provision-test -o json
+    register: get_rolebindings
+    changed_when: false
+
+  - name: Verify User RoleBindings
+    fail:
+      msg: |
+        User RoleBindings are not as expected
+        >>>
+        {{ edit_users | to_yaml }}
+        ===
+        {{ got_users | to_yaml }}
+        <<<
+    vars:
+      role_users_query: "items[?roleRef.name=='edit'].subjects[]|[?kind=='User'].name"
+      got_users: >-
+        {{ get_rolebindings.stdout | from_json | json_query(role_users_query) | sort }}
+    when:
+      got_users != edit_users
+
+  - name: Verify Group RoleBindings
+    fail:
+      msg: |
+        Group RoleBindings are not as expected
+        >>>
+        {{ edit_groups | to_yaml }}
+        ===
+        {{ got_groups | to_yaml }}
+        <<<
+    vars:
+      role_groups_query: "items[?roleRef.name=='edit'].subjects[]|[?kind=='Group' || kind=='SystemGroup'].name"
+      got_groups: >-
+        {{ get_rolebindings.stdout | from_json | json_query(role_groups_query) | sort }}
+    when:
+      got_groups != edit_groups
+
+- name: Test Update
+  hosts: localhost
+  connection: local
+  vars:
+    edit_users:
+    - bob
+    - eve
+    edit_groups:
+    - xkcd
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - projects:
+      - name: provision-test
+        role_bindings:
+        - role: edit
+          users: "{{ edit_users }}"
+          groups: "{{ edit_groups }}"
+          remove_unlisted: true
+
+  tasks:
+  - name: Get project RoleBindings
+    command: >-
+      {{ test_oc_cmd }} get --export rolebinding -n provision-test -o json
+    register: get_rolebindings
+    changed_when: false
+
+  - name: Verify User RoleBindings Update
+    fail:
+      msg: |
+        User RoleBindings are not as expected
+        >>>
+        {{ edit_users | to_yaml }}
+        ===
+        {{ got_users | to_yaml }}
+        <<<
+    vars:
+      role_users_query: "items[?roleRef.name=='edit'].subjects[]|[?kind=='User'].name"
+      got_users: >-
+        {{ get_rolebindings.stdout | from_json | json_query(role_users_query) | sort }}
+    when:
+      got_users != edit_users
+
+  - name: Verify Group RoleBindings Update
+    fail:
+      msg: |
+        Group RoleBindings are not as expected
+        >>>
+        {{ edit_groups | to_yaml }}
+        ===
+        {{ got_groups | to_yaml }}
+        <<<
+    vars:
+      role_groups_query: "items[?roleRef.name=='edit'].subjects[]|[?kind=='Group' || kind=='SystemGroup'].name"
+      got_groups: >-
+        {{ get_rolebindings.stdout | from_json | json_query(role_groups_query) | sort }}
+    when:
+      got_groups != edit_groups

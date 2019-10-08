@@ -1,0 +1,131 @@
+---
+- name: Set Facts
+  hosts: localhost
+  connection: local
+  vars_files:
+  - login-creds.yml
+  tasks:
+  - include_tasks: setup-test.yml
+  - set_fact:
+      ignore_differences:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/last-applied-configuration: ''
+          creationTimestamp: null
+          selfLink: null
+
+- name: Test Provision
+  hosts: localhost
+  connection: local
+  vars:
+    provision_route: "{{ lookup('template', 'resources/test-route.yml.j2') | from_yaml }}"
+    route_service_name: test-route-service
+
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - projects:
+      - name: provision-test
+
+  tasks:
+  - name: Provision Route
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_route }}"
+
+  - name: Get Route
+    command: >-
+      {{ test_oc_cmd }} get --export route
+      test-route -n provision-test -o json
+    register: get_route
+    changed_when: false
+
+  - name: Verify Route
+    fail:
+      msg: |
+        Route not defined as expected
+        >>>
+        {{ cmp_route | to_yaml }}
+        ===
+        {{ got_route | to_yaml }}
+        <<<
+    vars:
+      got_route: "{{ get_route.stdout | from_json | combine(ignore_differences, recursive=True) }}"
+      cmp_route: "{{ provision_route | combine(ignore_differences, recursive=True) }}"
+    when: >-
+      cmp_route.metadata != got_route.metadata or
+      cmp_route.spec != got_route.spec
+
+  - name: Check reprovision Route
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_route }}"
+    register: reprovision_route
+
+  - fail:
+      msg: Reprovision indicated change to Route
+    when: reprovision_route.changed
+
+- name: Test Update
+  hosts: localhost
+  connection: local
+  vars:
+    provision_route: "{{ lookup('template', 'resources/test-route.yml.j2') | from_yaml }}"
+    route_service_name: test-route-service2
+
+  tasks:
+  - name: Apply update to Route
+    openshift_provision:
+      connection: "{{ openshift_connection }}"
+      namespace: provision-test
+      resource: "{{ provision_route }}"
+
+  - name: Get Route
+    command: >-
+      {{ test_oc_cmd }} get --export route
+      test-route -n provision-test -o json
+    register: get_route
+    changed_when: false
+
+  - name: Verify Update Route
+    fail:
+      msg: |
+        Route not defined as expected
+        >>>
+        {{ cmp_route | to_yaml }}
+        ===
+        {{ got_route | to_yaml }}
+        <<<
+    vars:
+      got_route: "{{ get_route.stdout | from_json | combine(ignore_differences, recursive=True) }}"
+      cmp_route: "{{ provision_route | combine(ignore_differences, recursive=True) }}"
+    when: >-
+      cmp_route.metadata != got_route.metadata or
+      cmp_route.spec != got_route.spec
+
+- name: Test Delete
+  hosts: localhost
+  connection: local
+  tasks:
+  - name: Delete Route
+    openshift_provision:
+      action: delete
+      namespace: provision-test
+      connection: "{{ openshift_connection }}"
+      resource:
+        kind: Route
+        metadata:
+          name: test-route
+
+  - pause:
+      seconds: 1
+
+  - name: Verify Route Delete
+    command: >-
+      {{ test_oc_cmd }} get --export route
+      test-route -n provision-test -o json
+    register: get_route
+    failed_when: get_route.rc == 0
+    changed_when: false

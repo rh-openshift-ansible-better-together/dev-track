@@ -165,10 +165,10 @@ Notice the `k8s:` line. This tells Ansible to use the `k8s` module to perform an
     state: present
     definition: "{{ lookup('template', item) | from_yaml }}"
   loop:
-    - secret.yml.j2
-    - service.yml.j2
-    - pvc.yml.j2
-    - deployment.yml.j2
+    - name: secret.yml.j2
+    - name: service.yml.j2
+    - name: pvc.yml.j2
+    - name: deployment.yml.j2
 ```
 
 The `loop:` stanza is a control function that tells Ansible to loop through each item in the list below it. It works kind of like a for-each loop in Java. It will name each iteration of the loop `item` and will pass it back up to the `definition: ` parameter of the `k8s` module. It will get interpreted by an Ansible lookup function called `template`, meaning that it will leverage a dependency called `jinja2` to template out each YAML file and create them to the OpenShift cluster.

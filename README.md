@@ -31,7 +31,7 @@ SSH into the VM using the directions from the table below.
 
 | Location | SSH Command |
 | -------- | ----------- |
-| Chicago | ssh -i BetterTogether.pem centos@chivm${USER_NUMBER}.openshift-is-awesome.com |
+| Albany | ssh -i BetterTogether.pem centos@albvm${USER_NUMBER}.openshift-is-awesome.com |
 
 After you SSH into the VM, clone this repo and set an environment variable to reference examples used throughout this workshop.
 ```bash
@@ -47,7 +47,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Chicago | https://api.cluster-chi-e7f3.chi-e7f3.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-chi-e7f3.chi-e7f3.open.redhat.com |
+| Albany | https://api.cluster-alb-xxxx.alb-xxxx.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-alb-xxxx.alb-xxxx.open.redhat.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

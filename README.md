@@ -47,7 +47,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Albany | https://api.cluster-alb-xxxx.alb-xxxx.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-alb-xxxx.alb-xxxx.open.redhat.com |
+| Albany | https://api.cluster-alb-67b2.alb-67b2.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-alb-67b2.alb-67b2.open.redhat.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

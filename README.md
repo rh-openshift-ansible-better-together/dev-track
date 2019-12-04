@@ -31,7 +31,7 @@ SSH into the VM using the directions from the table below.
 
 | Location | SSH Command |
 | -------- | ----------- |
-| Albany | ssh -i BetterTogether.pem centos@albvm${USER_NUMBER}.openshift-is-awesome.com |
+| Jersey City | ssh -i BetterTogether.pem centos@ewrvm${USER_NUMBER}.openshift-is-awesome.com |
 
 After you SSH into the VM, clone this repo and set an environment variable to reference examples used throughout this workshop.
 ```bash
@@ -47,7 +47,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Albany | https://api.cluster-alb-67b2.alb-67b2.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-alb-67b2.alb-67b2.open.redhat.com |
+| Jersey City | https://api.cluster-ewr-XXXX.ewr-XXXX.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-ewr-XXXX.ewr-XXXX.open.redhat.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

@@ -47,7 +47,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Jersey City | https://api.cluster-ewr-XXXX.ewr-XXXX.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-ewr-XXXX.ewr-XXXX.open.redhat.com |
+| Jersey City | https://api.cluster-jersey-2e22.jersey-2e22.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-jersey-2e22.jersey-2e22.open.redhat.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

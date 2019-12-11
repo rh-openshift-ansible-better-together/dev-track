@@ -31,8 +31,7 @@ SSH into the VM using the directions from the table below.
 
 | Location | SSH Command |
 | -------- | ----------- |
-| Washington, DC | ssh -i BetterTogether.pem centos@usavm${USER_NUMBER}.openshift-is-awesome.com |
-| Toronto, Canada | ssh -i BetterTogether.pem centos@canvm${USER_NUMBER}.openshift-is-awesome.com |
+| Columbia, MD | ssh -i BetterTogether.pem centos@usavm${USER_NUMBER}.openshift-is-awesome.com |
 
 After you SSH into the VM, clone this repo and set an environment variable to reference examples used throughout this workshop.
 ```bash
@@ -48,8 +47,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Washington, DC | https://api.cluster-washdc-3ec2.washdc-3ec2.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-washdc-3ec2.washdc-3ec2.open.redhat.com |
-| Toronto, Canada | https://api.cluster-toronto-598e.toronto-598e.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-toronto-598e.toronto-598e.open.redhat.com |
+| Columbia, MD | https://api.cluster-columbia-c145.columbia-c145.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-columbia-c145.columbia-c145.open.redhat.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

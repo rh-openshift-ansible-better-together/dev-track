@@ -31,8 +31,7 @@ SSH into the VM using the directions from the table below.
 
 | Location | SSH Command |
 | -------- | ----------- |
-| Washington, DC | ssh -i BetterTogether.pem centos@usavm${USER_NUMBER}.openshift-is-awesome.com |
-| Toronto, Canada | ssh -i BetterTogether.pem centos@canvm${USER_NUMBER}.openshift-is-awesome.com |
+| Columbia, MD | ssh -i BetterTogether.pem centos@usavm${USER_NUMBER}.openshift-is-awesome.com |
 
 After you SSH into the VM, clone this repo and set an environment variable to reference examples used throughout this workshop.
 ```bash

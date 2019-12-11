@@ -48,8 +48,7 @@ See the table below for your location's cluster information.
 
 | Location | API Server | Web Console |
 | -------- | ---------- | ----------- |
-| Washington, DC | https://api.cluster-washdc-3ec2.washdc-3ec2.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-washdc-3ec2.washdc-3ec2.open.redhat.com |
-| Toronto, Canada | https://api.cluster-toronto-598e.toronto-598e.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-toronto-598e.toronto-598e.open.redhat.com |
+| Columbia, MD | https://api.cluster-columbia-c145.columbia-c145.open.redhat.com:6443 | http://console-openshift-console.apps.cluster-columbia-c145.columbia-c145.open.redhat.com |
 
 Set an environment variable to reference your username and API Server:
 ```bash

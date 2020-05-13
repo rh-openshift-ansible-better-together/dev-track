@@ -39,7 +39,7 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: java:latest
+          name: java:8
           namespace: openshift
       type: Source
 parameters:
